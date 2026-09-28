@@ -62,7 +62,8 @@ export async function loader({ request }) {
   }
 
   try {
-    const redirectUri = new URL("/auth/instagram/callback", request.url).toString();
+    const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
+    const redirectUri = new URL("/auth/instagram/callback", appUrl).toString();
     const shortLived = await exchangeCodeForShortLivedToken(code, redirectUri);
     const longLived = await exchangeForLongLivedToken(shortLived.access_token);
     const expiresAt = new Date(Date.now() + longLived.expires_in * 1000);

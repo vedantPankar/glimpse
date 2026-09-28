@@ -16,7 +16,8 @@ export async function loader({ request }) {
   const videos = await listVideos(session.shop);
   const stats = await getVideoStats(session.shop);
   const instagramConnection = await getInstagramConnection(session.shop);
-  const redirectUri = new URL("/auth/instagram/callback", request.url).toString();
+  const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
+  const redirectUri = new URL("/auth/instagram/callback", appUrl).toString();
   const instagramAuthUrl = getInstagramAuthorizationUrl(session.shop, redirectUri);
   return {
     videos,
