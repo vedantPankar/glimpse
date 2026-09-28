@@ -1,0 +1,29 @@
+{% comment %}
+  Shared helpers for reading/writing the "reels_last_video" attribution
+  cookie. Rendered into any block that needs to set or consume it.
+{% endcomment %}
+<script>
+  window.__reelsCookie = window.__reelsCookie || (function () {
+    var COOKIE_NAME = "reels_last_video";
+    var MAX_AGE_SECONDS = 30 * 60;
+
+    function set(videoId) {
+      document.cookie =
+        COOKIE_NAME + "=" + encodeURIComponent(videoId) +
+        "; max-age=" + MAX_AGE_SECONDS + "; path=/; SameSite=Lax";
+    }
+
+    function get() {
+      var match = document.cookie.match(
+        new RegExp("(?:^|; )" + COOKIE_NAME + "=([^;]*)"),
+      );
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function clear() {
+      document.cookie = COOKIE_NAME + "=; max-age=0; path=/; SameSite=Lax";
+    }
+
+    return { set: set, get: get, clear: clear };
+  })();
+</script>

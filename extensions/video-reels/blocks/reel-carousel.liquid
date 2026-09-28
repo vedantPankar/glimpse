@@ -1,0 +1,614 @@
+{% comment %}
+  Renders the videos in the carousel the merchant picks (via a metaobject
+  picker synced from the Video Reels app), in one of four merchant-selectable
+  visual styles: row (horizontal scroll), stack (overlapping fanned cards),
+  bubbles (Stories-style circles that open a lightbox), or spotlight (one
+  large video at a time with crossfade + dot navigation). If no carousel is
+  picked, or it has no eligible videos, nothing renders.
+
+  Tracks a "view" event when a video starts playing, and a "click" event
+  (plus a short-lived attribution cookie for add-to-cart/order tracking)
+  right before navigating to the product page.
+{% endcomment %}
+{% render 'reels-cookie' %}
+{% assign reels_style_override = block.settings.style %}
+<div
+  class="video-reels-wrapper"
+  id="video-reels-wrapper-{{ block.id }}"
+>
+  <button
+    type="button"
+    class="video-reels-nav video-reels-nav--prev"
+    aria-label="Previous"
+    data-direction="-1"
+  >&#8249;</button>
+
+  <div class="video-reels-track" id="video-reels-track-{{ block.id }}"></div>
+
+  <button
+    type="button"
+    class="video-reels-nav video-reels-nav--next"
+    aria-label="Next"
+    data-direction="1"
+  >&#8250;</button>
+
+  <div class="video-reels-dots" id="video-reels-dots-{{ block.id }}"></div>
+</div>
+
+<div class="video-reels-lightbox" id="video-reels-lightbox-{{ block.id }}" hidden>
+  <button type="button" class="video-reels-lightbox-close" aria-label="Close">&times;</button>
+  <div class="video-reels-lightbox-content"></div>
+</div>
+
+<style>
+  .video-reels-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .video-reels-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    padding: 8px 4px;
+    flex: 1;
+  }
+  .video-reels-nav {
+    flex: 0 0 auto;
+    border: none;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .video-reels-nav:hover {
+    background: rgba(0, 0, 0, 0.12);
+    transform: scale(1.08);
+  }
+  .video-reels-dots {
+    display: none;
+    gap: 8px;
+    justify-content: center;
+    position: absolute;
+    bottom: -26px;
+    left: 0;
+    right: 0;
+  }
+  .video-reels-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .video-reels-dot.is-active {
+    background: #111;
+    transform: scale(1.3);
+  }
+  .video-reels-tile {
+    text-align: center;
+  }
+  .video-reels-tile-title {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0;
+    animation: video-reels-fade-in 0.4s ease forwards;
+  }
+  .video-reels-tile-product-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    background: #fff;
+    cursor: pointer;
+  }
+  .video-reels-tile-product-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @keyframes video-reels-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Row style */
+  .video-reels-style-row .video-reels-tile {
+    scroll-snap-align: start;
+    flex: 0 0 calc((100% - 3 * 20px) / 4);
+    opacity: 0;
+    animation: video-reels-fade-in 0.4s ease forwards;
+  }
+  @media (max-width: 600px) {
+    .video-reels-style-row .video-reels-tile {
+      flex-basis: calc((100% - 20px) / 2);
+    }
+  }
+  .video-reels-style-row .video-reels-tile-thumb,
+  .video-reels-style-stack .video-reels-tile-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111;
+    border: none;
+    padding: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .video-reels-style-row .video-reels-tile-thumb:hover {
+    transform: scale(1.04);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+  .video-reels-style-row .video-reels-tile-thumb video,
+  .video-reels-style-stack .video-reels-tile-thumb video,
+  .video-reels-style-spotlight .video-reels-tile-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Stack style */
+  .video-reels-style-stack .video-reels-track {
+    overflow: visible;
+    gap: 0;
+    padding: 20px 60px;
+  }
+  .video-reels-style-stack .video-reels-tile {
+    flex: 0 0 170px;
+    width: 170px;
+    margin-left: -65px;
+    opacity: 0;
+    animation: video-reels-fade-in 0.4s ease forwards;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .video-reels-style-stack .video-reels-tile:first-child {
+    margin-left: 0;
+  }
+  .video-reels-style-stack .video-reels-tile:nth-child(odd) {
+    transform: rotate(-4deg);
+  }
+  .video-reels-style-stack .video-reels-tile:nth-child(even) {
+    transform: rotate(3deg);
+  }
+  .video-reels-style-stack .video-reels-tile:hover {
+    transform: scale(1.08) rotate(0deg);
+    z-index: 5;
+  }
+  .video-reels-style-stack .video-reels-tile-thumb {
+    border: 4px solid #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Bubbles style */
+  .video-reels-style-bubbles .video-reels-tile {
+    flex: 0 0 auto;
+    width: 84px;
+    opacity: 0;
+    animation: video-reels-fade-in 0.4s ease forwards;
+  }
+  .video-reels-style-bubbles .video-reels-tile-thumb {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    padding: 3px;
+    background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
+    transition: transform 0.25s ease;
+  }
+  .video-reels-style-bubbles .video-reels-tile-thumb:hover {
+    transform: scale(1.08);
+  }
+  .video-reels-style-bubbles .video-reels-tile-thumb img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    display: block;
+  }
+
+  /* Spotlight style */
+  .video-reels-style-spotlight .video-reels-track {
+    position: relative;
+    height: 420px;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .video-reels-style-spotlight .video-reels-tile {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 236px;
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    animation: none;
+  }
+  .video-reels-style-spotlight .video-reels-tile.is-active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  .video-reels-style-spotlight .video-reels-tile-thumb {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #111;
+    border: none;
+    padding: 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  .video-reels-style-spotlight .video-reels-dots {
+    display: flex;
+  }
+
+  /* Lightbox (used by bubbles style) */
+  .video-reels-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .video-reels-lightbox.is-open {
+    opacity: 1;
+  }
+  .video-reels-lightbox[hidden] {
+    display: none;
+  }
+  .video-reels-lightbox-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    text-align: center;
+  }
+  .video-reels-lightbox-content video {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 12px;
+  }
+  .video-reels-lightbox-content .video-reels-tile-title {
+    color: #fff;
+    animation: none;
+    opacity: 1;
+  }
+  .video-reels-lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    cursor: pointer;
+    line-height: 1;
+  }
+</style>
+
+<script>
+  (function () {
+    var styleOverride = {{ reels_style_override | default: "" | json }};
+    var wrapper = document.getElementById("video-reels-wrapper-{{ block.id }}");
+    var track = document.getElementById("video-reels-track-{{ block.id }}");
+    var dotsContainer = document.getElementById("video-reels-dots-{{ block.id }}");
+    var lightbox = document.getElementById("video-reels-lightbox-{{ block.id }}");
+    if (!wrapper || !track) return;
+
+    function trackReelsEvent(videoId, eventType) {
+      var payload = JSON.stringify({ videoId: videoId, eventType: eventType });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/apps/reels/track",
+          new Blob([payload], { type: "application/json" }),
+        );
+      } else {
+        fetch("/apps/reels/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(function () {});
+      }
+    }
+
+    function trackClickAndAttribute(video) {
+      if (!video.id) return;
+      trackReelsEvent(video.id, "click");
+      window.__reelsCookie.set(video.id);
+    }
+
+    function buildBadge(video) {
+      if (!video.productImageUrl) return null;
+      var badge = document.createElement("div");
+      badge.className = "video-reels-tile-product-badge";
+      var img = document.createElement("img");
+      img.src = video.productImageUrl;
+      img.alt = video.productTitle || "Tagged product";
+      badge.appendChild(img);
+      badge.addEventListener("click", function (event) {
+        event.stopPropagation();
+        trackClickAndAttribute(video);
+        if (video.productHandle) window.location.href = "/products/" + video.productHandle;
+      });
+      return badge;
+    }
+
+    function buildTitleLink(video) {
+      if (!video.productHandle) return null;
+      var link = document.createElement("a");
+      link.className = "video-reels-tile-title";
+      link.href = "/products/" + video.productHandle;
+      link.textContent = video.productTitle || "";
+      link.addEventListener("click", function () {
+        trackClickAndAttribute(video);
+      });
+      return link;
+    }
+
+    function buildVideoTile(video) {
+      var tile = document.createElement("div");
+      tile.className = "video-reels-tile";
+
+      var thumb = document.createElement("button");
+      thumb.type = "button";
+      thumb.className = "video-reels-tile-thumb";
+      thumb.setAttribute("aria-label", video.productTitle || "Play video");
+
+      var el = document.createElement("video");
+      el.src = video.url;
+      if (video.thumbnailUrl) el.poster = video.thumbnailUrl;
+      el.muted = true;
+      el.loop = true;
+      el.autoplay = true;
+      el.playsInline = true;
+      thumb.appendChild(el);
+
+      el.addEventListener(
+        "play",
+        function () {
+          if (video.id) trackReelsEvent(video.id, "view");
+        },
+        { once: true },
+      );
+
+      thumb.addEventListener("click", function () {
+        if (el.paused) {
+          el.play();
+        } else {
+          el.pause();
+        }
+      });
+
+      var badge = buildBadge(video);
+      if (badge) thumb.appendChild(badge);
+
+      tile.appendChild(thumb);
+
+      var titleLink = buildTitleLink(video);
+      if (titleLink) tile.appendChild(titleLink);
+
+      return { tile: tile, videoEl: el };
+    }
+
+    function renderRowOrStack(videos) {
+      videos.forEach(function (video) {
+        track.appendChild(buildVideoTile(video).tile);
+      });
+      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var direction = Number(button.getAttribute("data-direction"));
+          track.scrollBy({ left: direction * track.clientWidth * 0.6, behavior: "smooth" });
+        });
+      });
+    }
+
+    function openLightbox(video) {
+      if (!lightbox) return;
+      var content = lightbox.querySelector(".video-reels-lightbox-content");
+      content.innerHTML = "";
+
+      var el = document.createElement("video");
+      el.src = video.url;
+      if (video.thumbnailUrl) el.poster = video.thumbnailUrl;
+      el.controls = true;
+      el.playsInline = true;
+      content.appendChild(el);
+
+      var titleLink = buildTitleLink(video);
+      if (titleLink) content.appendChild(titleLink);
+
+      lightbox.hidden = false;
+      requestAnimationFrame(function () {
+        lightbox.classList.add("is-open");
+      });
+      el.play().catch(function () {});
+      if (video.id) trackReelsEvent(video.id, "view");
+    }
+
+    function closeLightbox() {
+      if (!lightbox) return;
+      lightbox.classList.remove("is-open");
+      setTimeout(function () {
+        lightbox.hidden = true;
+        var content = lightbox.querySelector(".video-reels-lightbox-content");
+        content.innerHTML = "";
+      }, 300);
+    }
+
+    function renderBubbles(videos) {
+      videos.forEach(function (video) {
+        var tile = document.createElement("div");
+        tile.className = "video-reels-tile";
+
+        var thumb = document.createElement("button");
+        thumb.type = "button";
+        thumb.className = "video-reels-tile-thumb";
+        thumb.setAttribute("aria-label", video.productTitle || "Play video");
+
+        var img = document.createElement("img");
+        img.src = video.thumbnailUrl || video.url;
+        img.alt = video.productTitle || "Video";
+        thumb.appendChild(img);
+
+        thumb.addEventListener("click", function () {
+          trackClickAndAttribute(video);
+          openLightbox(video);
+        });
+
+        tile.appendChild(thumb);
+
+        var titleLink = buildTitleLink(video);
+        if (titleLink) tile.appendChild(titleLink);
+
+        track.appendChild(tile);
+      });
+
+      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var direction = Number(button.getAttribute("data-direction"));
+          track.scrollBy({ left: direction * track.clientWidth * 0.6, behavior: "smooth" });
+        });
+      });
+
+      if (lightbox) {
+        lightbox.querySelector(".video-reels-lightbox-close").addEventListener("click", closeLightbox);
+        lightbox.addEventListener("click", function (event) {
+          if (event.target === lightbox) closeLightbox();
+        });
+      }
+    }
+
+    function renderSpotlight(videos) {
+      if (videos.length === 0) return;
+
+      var tiles = videos.map(function (video) {
+        var built = buildVideoTile(video);
+        built.tile.classList.remove("video-reels-tile");
+        built.tile.className = "video-reels-tile";
+        track.appendChild(built.tile);
+        return built;
+      });
+
+      var dots = videos.map(function (_, index) {
+        var dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "video-reels-dot";
+        dot.setAttribute("aria-label", "Go to video " + (index + 1));
+        dot.addEventListener("click", function () {
+          goTo(index);
+        });
+        dotsContainer.appendChild(dot);
+        return dot;
+      });
+
+      var current = 0;
+
+      function goTo(index) {
+        var next = (index + videos.length) % videos.length;
+        tiles[current].tile.classList.remove("is-active");
+        tiles[current].videoEl.pause();
+        dots[current].classList.remove("is-active");
+
+        current = next;
+        tiles[current].tile.classList.add("is-active");
+        dots[current].classList.add("is-active");
+        tiles[current].videoEl.currentTime = 0;
+        tiles[current].videoEl.play().catch(function () {});
+      }
+
+      goTo(0);
+
+      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var direction = Number(button.getAttribute("data-direction"));
+          goTo(current + direction);
+        });
+      });
+    }
+
+    var carouselId = {{ block.settings.carousel.carousel_id.value | default: "" | json }};
+    if (!carouselId) return;
+
+    fetch("/apps/reels/videos?id=" + encodeURIComponent(carouselId))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var videos = data.videos || [];
+        var style = styleOverride || data.style || "row";
+        wrapper.classList.add("video-reels-style-" + style);
+
+        if (style === "bubbles") {
+          renderBubbles(videos);
+        } else if (style === "spotlight") {
+          renderSpotlight(videos);
+        } else {
+          renderRowOrStack(videos);
+        }
+      })
+      .catch(function () {
+        // Leave the carousel empty if the lookup fails.
+      });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video Reels Carousel",
+  "target": "section",
+  "settings": [
+    {
+      "type": "metaobject",
+      "id": "carousel",
+      "metaobject_type": "app--428817317889--video_carousel",
+      "label": "Carousel"
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "default": "",
+      "info": "\"Use app setting\" follows whatever style is chosen for this carousel in the Video Reels app. Pick a specific style here to override it just for this block.",
+      "options": [
+        { "value": "", "label": "Use app setting" },
+        { "value": "row", "label": "Row (horizontal scroll)" },
+        { "value": "stack", "label": "Stack (overlapping cards)" },
+        { "value": "bubbles", "label": "Bubbles (Stories-style, tap to play)" },
+        { "value": "spotlight", "label": "Spotlight (one video at a time)" }
+      ]
+    }
+  ]
+}
+{% endschema %}

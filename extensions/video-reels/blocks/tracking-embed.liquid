@@ -1,0 +1,58 @@
+{% comment %}
+  App embed (enable once under Theme editor > App embeds). Runs sitewide so
+  an add-to-cart on ANY page can be attributed to whichever reel video the
+  shopper last clicked, even if that click happened on a different page.
+
+  Detects successful calls to /cart/add(.js) by wrapping window.fetch. If a
+  non-expired "reels_last_video" cookie is present, it: fires an
+  "add_to_cart" tracking event, persists the video id as a cart attribute
+  (so it survives through checkout into the order's note_attributes for
+  order-level attribution), then consumes the cookie.
+{% endcomment %}
+{% render 'reels-cookie' %}
+<script>
+  (function () {
+    if (window.__reelsCartAddHooked) return;
+    window.__reelsCartAddHooked = true;
+
+    var originalFetch = window.fetch;
+    window.fetch = function (input, init) {
+      var url = typeof input === "string" ? input : (input && input.url) || "";
+      var isCartAdd = url.indexOf("/cart/add") !== -1;
+      var result = originalFetch.apply(this, arguments);
+
+      if (isCartAdd) {
+        result.then(function (response) {
+          if (!response.ok) return;
+
+          var videoId = window.__reelsCookie.get();
+          if (!videoId) return;
+
+          fetch("/apps/reels/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ videoId: videoId, eventType: "add_to_cart" }),
+            keepalive: true,
+          }).catch(function () {});
+
+          fetch("/cart/update.js", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attributes: { reels_video_id: videoId } }),
+          }).catch(function () {});
+
+          window.__reelsCookie.clear();
+        });
+      }
+
+      return result;
+    };
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video Reels tracking",
+  "target": "body"
+}
+{% endschema %}

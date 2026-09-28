@@ -1,0 +1,83 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "07f0d5132fb240f34caa60e07584c084"
+name = "video-carousel-app"
+application_url = "https://example.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products,write_metaobjects,write_metaobject_definitions"
+
+[product.metafields.app.demo_info]
+type = "single_line_text_field"
+name = "Demo Source Info"
+description = "Tracks products created by the Shopify app template for development"
+
+  [product.metafields.app.demo_info.access]
+  admin = "merchant_read_write"
+
+[metaobjects.app.example]
+name = "Example"
+description = "An example metaobject definition created by this template"
+
+  [metaobjects.app.example.access]
+  admin = "merchant_read_write"
+
+[metaobjects.app.example.fields.title]
+name = "Title"
+type = "single_line_text_field"
+required = true
+
+[metaobjects.app.example.fields.description]
+name = "Description"
+type = "multi_line_text_field"
+
+[metaobjects.app.video_carousel]
+name = "Video Carousel"
+description = "A named, ordered set of reel videos created in the Video Reels app"
+
+  [metaobjects.app.video_carousel.access]
+  admin = "merchant_read_write"
+
+[metaobjects.app.video_carousel.fields.name]
+name = "Name"
+type = "single_line_text_field"
+required = true
+
+[metaobjects.app.video_carousel.fields.carousel_id]
+name = "Carousel ID"
+type = "single_line_text_field"
+required = true
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
+  # orders/create webhook: NOT enabled yet. It requires Shopify's Protected
+  # Customer Data approval (Partners dashboard > app > API access) before
+  # this app can subscribe to it in ANY environment, including dev — without
+  # that approval, `shopify app dev` refuses to even boot with this
+  # subscription declared. Also needs the `read_orders` scope added back to
+  # [access_scopes] above once approved. The webhook handler
+  # (app/routes/webhooks.orders.create.jsx) and the order-attribution logic
+  # are already built and ready to go once both are in place.
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]
+
+[app_proxy]
+url = "https://example.com/apps/reels"
+subpath = "reels"
+prefix = "apps"
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true

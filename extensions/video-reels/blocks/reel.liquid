@@ -1,0 +1,55 @@
+{% comment %}
+  Renders any videos attached to this product via the Video Reels app.
+  Tracks a "view" event the first time each video starts playing.
+{% endcomment %}
+{% assign reel_product_id = block.settings.product.id %}
+<div id="video-reels-{{ reel_product_id }}" class="video-reels-block"></div>
+
+<script>
+  (function () {
+    var productId = {{ reel_product_id | json }};
+    var container = document.getElementById("video-reels-" + productId);
+    if (!productId || !container) return;
+
+    fetch("/apps/reels/product/" + productId)
+      .then(function (res) { return res.json(); })
+      .then(function (videos) {
+        videos.forEach(function (video) {
+          var el = document.createElement("video");
+          el.src = video.url;
+          if (video.thumbnailUrl) el.poster = video.thumbnailUrl;
+          el.controls = true;
+          el.style.width = "100%";
+          el.style.marginBottom = "12px";
+          el.addEventListener(
+            "play",
+            function () {
+              if (!video.id) return;
+              var payload = JSON.stringify({ videoId: video.id, eventType: "view" });
+              fetch("/apps/reels/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: payload,
+                keepalive: true,
+              }).catch(function () {});
+            },
+            { once: true },
+          );
+          container.appendChild(el);
+        });
+      })
+      .catch(function () {
+        // Empty block if the lookup fails; nothing to show.
+      });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video reels",
+  "target": "section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "autofill": true }
+  ]
+}
+{% endschema %}

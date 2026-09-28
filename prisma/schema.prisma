@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  shop         String
+  cloudinaryId String
+  url          String
+  thumbnailUrl String?
+  title        String?
+  duration     Float?
+  createdAt    DateTime @default(now())
+  products     VideoProduct[]
+  carousels    CarouselVideo[]
+  events       VideoEvent[]
+}
+
+model VideoProduct {
+  id             String  @id @default(cuid())
+  videoId        String
+  productId      String
+  productTitle   String
+  productHandle  String
+  productImageUrl String?
+  video          Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, productId])
+}
+
+model Carousel {
+  id        String          @id @default(cuid())
+  shop      String
+  name      String
+  style     String          @default("row")
+  createdAt DateTime        @default(now())
+  videos    CarouselVideo[]
+
+  @@unique([shop, name])
+}
+
+model CarouselVideo {
+  id         String   @id @default(cuid())
+  carouselId String
+  videoId    String
+  position   Int
+  carousel   Carousel @relation(fields: [carouselId], references: [id], onDelete: Cascade)
+  video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([carouselId, videoId])
+}
+
+model VideoEvent {
+  id         String   @id @default(cuid())
+  shop       String
+  videoId    String
+  eventType  String
+  orderValue Float?
+  createdAt  DateTime @default(now())
+  video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId, eventType])
+}
+
+model InstagramConnection {
+  id               String   @id @default(cuid())
+  shop             String   @unique
+  accessToken      String
+  expiresAt        DateTime
+  instagramUserId  String
+  createdAt        DateTime @default(now())
+}
