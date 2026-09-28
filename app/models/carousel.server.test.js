@@ -117,7 +117,7 @@ describe("carousel.server", () => {
     const unattachedVideo = await makeVideo("unattached");
     await attachProduct(
       attachedVideo.id,
-      "gid://shopify/Product/1",
+      "gid://shopify/Product/90020",
       "Test Product",
       "test-product",
     );
@@ -148,7 +148,7 @@ describe("carousel.server", () => {
     const attachedVideo = await makeVideo("by-id-attached");
     await attachProduct(
       attachedVideo.id,
-      "gid://shopify/Product/2",
+      "gid://shopify/Product/90021",
       "Another Product",
       "another-product",
     );

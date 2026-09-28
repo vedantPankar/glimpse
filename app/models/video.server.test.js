@@ -67,7 +67,7 @@ describe("video.server", () => {
     createdIds.push(attachedVideo.id, unattachedVideo.id);
     await attachProduct(
       attachedVideo.id,
-      "gid://shopify/Product/1",
+      "gid://shopify/Product/90010",
       "Test Product",
       "test-product",
     );

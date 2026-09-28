@@ -26,7 +26,7 @@ describe("videoProduct.server", () => {
     });
     createdVideoIds.push(video.id);
 
-    await attachProduct(video.id, "gid://shopify/Product/1", "Test Product", "test-product");
+    await attachProduct(video.id, "gid://shopify/Product/90030", "Test Product", "test-product");
 
     const products = await listProductsForVideo(video.id);
     expect(products).toHaveLength(1);
@@ -41,9 +41,9 @@ describe("videoProduct.server", () => {
       url: "https://res.cloudinary.com/demo/video/upload/abc123.mp4",
     });
     createdVideoIds.push(video.id);
-    await attachProduct(video.id, "gid://shopify/Product/1", "Test Product", "test-product");
+    await attachProduct(video.id, "gid://shopify/Product/90030", "Test Product", "test-product");
 
-    await detachProduct(video.id, "gid://shopify/Product/1");
+    await detachProduct(video.id, "gid://shopify/Product/90030");
 
     const products = await listProductsForVideo(video.id);
     expect(products).toHaveLength(0);
@@ -56,9 +56,9 @@ describe("videoProduct.server", () => {
       url: "https://res.cloudinary.com/demo/video/upload/abc123.mp4",
     });
     createdVideoIds.push(video.id);
-    await attachProduct(video.id, "gid://shopify/Product/1", "Test Product", "test-product");
+    await attachProduct(video.id, "gid://shopify/Product/90030", "Test Product", "test-product");
 
-    const associations = await listVideosForProduct("gid://shopify/Product/1");
+    const associations = await listVideosForProduct("gid://shopify/Product/90030");
 
     expect(associations).toHaveLength(1);
     expect(associations[0].video.url).toBe(
