@@ -185,31 +185,60 @@ function CarouselRow({ carousel, onDelete }) {
   );
 }
 
-function CarouselGridCard({ carousel }) {
+function CarouselGridCard({ carousel, onDelete }) {
   const thumbs = carousel.videos.slice(0, 3);
   return (
-    <a href={`/app/carousels/${carousel.id}`} className="shell-carousel-card">
-      <div className="shell-carousel-thumbs">
-        {thumbs.length === 0 ? (
-          <div />
-        ) : (
-          thumbs.map((cv) => (
-            <img
-              key={cv.videoId}
-              src={cv.video.thumbnailUrl || cv.video.url}
-              alt=""
-            />
-          ))
-        )}
-      </div>
-      <div className="shell-carousel-info">
-        <div className="shell-carousel-name">{carousel.name}</div>
-        <div className="shell-carousel-meta">
-          {carousel._count.videos} video{carousel._count.videos === 1 ? "" : "s"}{" "}
-          · {carousel.stats.views} views
+    <div className="shell-card" style={{ padding: 0, overflow: "hidden" }}>
+      <a
+        href={`/app/carousels/${carousel.id}`}
+        style={{ color: "inherit", textDecoration: "none", display: "block" }}
+      >
+        <div className="shell-carousel-thumbs">
+          {thumbs.length === 0 ? (
+            <div />
+          ) : (
+            thumbs.map((cv) => (
+              <img
+                key={cv.videoId}
+                src={cv.video.thumbnailUrl || cv.video.url}
+                alt=""
+              />
+            ))
+          )}
         </div>
+        <div className="shell-carousel-info">
+          <div className="shell-carousel-name">{carousel.name}</div>
+          <div className="shell-carousel-meta">
+            {carousel._count.videos} video
+            {carousel._count.videos === 1 ? "" : "s"} ·{" "}
+            {carousel.stats.views} views
+          </div>
+        </div>
+      </a>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          padding: "0 12px 12px",
+        }}
+      >
+        <a
+          href={`/app/carousels/${carousel.id}`}
+          className="shell-btn-secondary"
+          style={{ flex: 1, justifyContent: "center" }}
+        >
+          Edit
+        </a>
+        <button
+          type="button"
+          className="shell-btn-danger-text"
+          style={{ flex: 1 }}
+          onClick={() => onDelete(carousel)}
+        >
+          Delete
+        </button>
       </div>
-    </a>
+    </div>
   );
 }
 
@@ -467,7 +496,11 @@ export default function CarouselsIndex() {
           ) : (
             <div className="shell-carousel-row">
               {visibleCarousels.map((carousel) => (
-                <CarouselGridCard key={carousel.id} carousel={carousel} />
+                <CarouselGridCard
+                  key={carousel.id}
+                  carousel={carousel}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}
