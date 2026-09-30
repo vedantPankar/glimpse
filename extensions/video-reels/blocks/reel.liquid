@@ -8,6 +8,7 @@
 <script>
   (function () {
     var productId = {{ reel_product_id | json }};
+    var pageType = {{ request.page_type | json }};
     var container = document.getElementById("video-reels-" + productId);
     if (!productId || !container) return;
 
@@ -25,7 +26,11 @@
             "play",
             function () {
               if (!video.id) return;
-              var payload = JSON.stringify({ videoId: video.id, eventType: "view" });
+              var payload = JSON.stringify({
+                videoId: video.id,
+                eventType: "view",
+                pageType: pageType,
+              });
               fetch("/apps/reels/track", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

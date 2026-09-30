@@ -15,6 +15,7 @@
     if (window.__reelsCartAddHooked) return;
     window.__reelsCartAddHooked = true;
 
+    var pageType = {{ request.page_type | json }};
     var originalFetch = window.fetch;
     window.fetch = function (input, init) {
       var url = typeof input === "string" ? input : (input && input.url) || "";
@@ -31,7 +32,11 @@
           fetch("/apps/reels/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ videoId: videoId, eventType: "add_to_cart" }),
+            body: JSON.stringify({
+              videoId: videoId,
+              eventType: "add_to_cart",
+              pageType: pageType,
+            }),
             keepalive: true,
           }).catch(function () {});
 

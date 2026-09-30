@@ -89,10 +89,13 @@ model VideoEvent {
   videoId    String
   eventType  String
   orderValue Float?
+  placement  String?
+  deviceType String?
   createdAt  DateTime @default(now())
   video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([videoId, eventType])
+  @@index([shop, createdAt])
 }
 
 model InstagramConnection {

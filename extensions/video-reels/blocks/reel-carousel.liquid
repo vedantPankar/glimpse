@@ -322,6 +322,7 @@
 <script>
   (function () {
     var styleOverride = {{ reels_style_override | default: "" | json }};
+    var pageType = {{ request.page_type | json }};
     var wrapper = document.getElementById("video-reels-wrapper-{{ block.id }}");
     var track = document.getElementById("video-reels-track-{{ block.id }}");
     var dotsContainer = document.getElementById("video-reels-dots-{{ block.id }}");
@@ -329,7 +330,11 @@
     if (!wrapper || !track) return;
 
     function trackReelsEvent(videoId, eventType) {
-      var payload = JSON.stringify({ videoId: videoId, eventType: eventType });
+      var payload = JSON.stringify({
+        videoId: videoId,
+        eventType: eventType,
+        pageType: pageType,
+      });
       if (navigator.sendBeacon) {
         navigator.sendBeacon(
           "/apps/reels/track",
