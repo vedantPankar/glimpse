@@ -13,6 +13,9 @@ export async function action({ request }) {
   const formData = await request.formData();
 
   const duration = formData.get("duration");
+  const width = formData.get("width");
+  const height = formData.get("height");
+  const fileSize = formData.get("fileSize");
 
   await createVideo({
     shop: session.shop,
@@ -20,6 +23,9 @@ export async function action({ request }) {
     url: String(formData.get("url")),
     thumbnailUrl: String(formData.get("thumbnailUrl")),
     duration: duration ? Number(duration) : null,
+    width: width ? Number(width) : null,
+    height: height ? Number(height) : null,
+    fileSize: fileSize ? Number(fileSize) : null,
     source: "device",
   });
 
@@ -78,6 +84,13 @@ export default function Upload() {
         createData.append("thumbnailUrl", thumbnailUrl);
         if (uploaded.duration) {
           createData.append("duration", String(uploaded.duration));
+        }
+        if (uploaded.width) createData.append("width", String(uploaded.width));
+        if (uploaded.height) {
+          createData.append("height", String(uploaded.height));
+        }
+        if (uploaded.bytes) {
+          createData.append("fileSize", String(uploaded.bytes));
         }
 
         await fetch("/app/upload", { method: "POST", body: createData });

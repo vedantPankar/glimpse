@@ -42,6 +42,9 @@ model Video {
   title        String?
   duration     Float?
   source       String   @default("device")
+  width        Int?
+  height       Int?
+  fileSize     Int?
   createdAt    DateTime @default(now())
   products     VideoProduct[]
   carousels    CarouselVideo[]

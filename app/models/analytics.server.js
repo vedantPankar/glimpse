@@ -106,7 +106,26 @@ export async function getPeriodComparison(shop, days = 30) {
     clicks: withChange(current.clicks, previous.clicks),
     addToCarts: withChange(current.addToCarts, previous.addToCarts),
     orders: withChange(current.orders, previous.orders),
-    revenue: current.revenue,
+    revenue: withChange(current.revenue, previous.revenue),
+  };
+}
+
+export async function getVideosOverview(shop, days = 30) {
+  const rangeEnd = new Date();
+  const rangeStart = new Date(rangeEnd);
+  rangeStart.setDate(rangeStart.getDate() - days);
+
+  const [totalNow, totalAsOfRangeStart, periodTotals] = await Promise.all([
+    db.video.count({ where: { shop } }),
+    db.video.count({ where: { shop, createdAt: { lt: rangeStart } } }),
+    getPeriodComparison(shop, days),
+  ]);
+
+  return {
+    reels: withChange(totalNow, totalAsOfRangeStart),
+    views: periodTotals.views,
+    clicks: periodTotals.clicks,
+    revenue: periodTotals.revenue,
   };
 }
 

@@ -45,6 +45,9 @@ export async function action({ request }) {
     thumbnailUrl: thumbnailUrl ? String(thumbnailUrl) : null,
     title: caption ? String(caption).slice(0, 200) : null,
     duration: uploaded.duration ?? null,
+    width: uploaded.width ?? null,
+    height: uploaded.height ?? null,
+    fileSize: uploaded.bytes ?? null,
     source: "instagram",
   });
 

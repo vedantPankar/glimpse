@@ -25,3 +25,21 @@ export function formatDate(dateInput) {
     year: "numeric",
   });
 }
+
+export function formatDateTime(dateInput) {
+  const date = new Date(dateInput);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return null;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
