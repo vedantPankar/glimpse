@@ -43,15 +43,21 @@ export async function action({ request, params }) {
     if (!name) {
       return { error: "Carousel name is required." };
     }
+    let carousel;
     try {
-      const carousel = await renameCarousel(carouselId, name);
-      await upsertCarouselMetaobject(admin, carousel);
-      return { ok: true };
+      carousel = await renameCarousel(carouselId, name);
     } catch (error) {
       if (error.code === "P2002") {
         return { error: `A carousel named "${name}" already exists.` };
       }
       throw error;
+    }
+    try {
+      await upsertCarouselMetaobject(admin, carousel);
+      return { ok: true };
+    } catch (error) {
+      console.error("Failed to sync carousel metaobject:", error);
+      return { ok: true };
     }
   }
 

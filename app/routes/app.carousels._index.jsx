@@ -36,14 +36,22 @@ export async function action({ request }) {
       }
       throw error;
     }
-    await upsertCarouselMetaobject(admin, carousel);
+    try {
+      await upsertCarouselMetaobject(admin, carousel);
+    } catch (error) {
+      console.error("Failed to sync carousel metaobject:", error);
+    }
     return redirect(`/app/carousels/${carousel.id}`);
   }
 
   if (intent === "delete") {
     const id = String(formData.get("id"));
     await deleteCarousel(id);
-    await deleteCarouselMetaobject(admin, id);
+    try {
+      await deleteCarouselMetaobject(admin, id);
+    } catch (error) {
+      console.error("Failed to delete carousel metaobject:", error);
+    }
     return { ok: true };
   }
 
