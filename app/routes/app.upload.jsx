@@ -9,8 +9,14 @@ import {
 } from "react-router";
 import { authenticate } from "../shopify.server";
 import { createVideo, listVideos } from "../models/video.server";
-import { getInstagramConnection } from "../models/instagramConnection.server";
-import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
+import {
+  getInstagramConnection,
+  deleteInstagramConnection,
+} from "../models/instagramConnection.server";
+import {
+  getInstagramAuthorizationUrl,
+  fetchInstagramVideoMedia,
+} from "../utils/instagram.server";
 import {
   formatDuration,
   formatDate,
@@ -29,10 +35,37 @@ export async function loader({ request }) {
     redirectUri,
   );
 
+  const url = new URL(request.url);
+  let instagramMedia = null;
+  if (url.searchParams.get("tab") === "instagram") {
+    if (!instagramConnection) {
+      instagramMedia = { connected: false, media: [] };
+    } else {
+      try {
+        const media = await fetchInstagramVideoMedia(
+          instagramConnection.accessToken,
+        );
+        instagramMedia = { connected: true, media };
+      } catch (error) {
+        if (error.isAuthError) {
+          await deleteInstagramConnection(session.shop);
+          instagramMedia = {
+            connected: false,
+            media: [],
+            error: "Your Instagram connection expired. Please reconnect.",
+          };
+        } else {
+          instagramMedia = { connected: true, media: [], error: error.message };
+        }
+      }
+    }
+  }
+
   return {
     videos,
     instagramConnected: !!instagramConnection,
     instagramAuthUrl,
+    instagramMedia,
   };
 }
 
@@ -119,16 +152,10 @@ function HistoryRow({ video, onDelete, deleting }) {
   );
 }
 
-function InstagramImportPanel({ instagramAuthUrl, onImported }) {
-  const mediaFetcher = useFetcher();
+function InstagramImportPanel({ data, instagramAuthUrl, onImported }) {
   const importFetcher = useFetcher();
+  const revalidator = useRevalidator();
   const [selectedIds, setSelectedIds] = useState(() => new Set());
-
-  useEffect(() => {
-    if (mediaFetcher.state === "idle" && !mediaFetcher.data) {
-      mediaFetcher.load("/app/instagram/media");
-    }
-  }, [mediaFetcher]);
 
   useEffect(() => {
     if (importFetcher.data?.ok) {
@@ -137,8 +164,7 @@ function InstagramImportPanel({ instagramAuthUrl, onImported }) {
     }
   }, [importFetcher.data, onImported]);
 
-  const data = mediaFetcher.data;
-  const loading = !data || mediaFetcher.state !== "idle";
+  const loading = !data || revalidator.state !== "idle";
 
   const toggle = (id) => {
     setSelectedIds((prev) => {
@@ -207,7 +233,7 @@ function InstagramImportPanel({ instagramAuthUrl, onImported }) {
         <button
           type="button"
           className="shell-btn-secondary"
-          onClick={() => mediaFetcher.load("/app/instagram/media")}
+          onClick={() => revalidator.revalidate()}
         >
           <s-icon type="refresh" size="small" /> Refresh
         </button>
@@ -267,7 +293,7 @@ function InstagramImportPanel({ instagramAuthUrl, onImported }) {
 }
 
 export default function Upload() {
-  const { videos, instagramAuthUrl } = useLoaderData();
+  const { videos, instagramAuthUrl, instagramMedia } = useLoaderData();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -431,6 +457,7 @@ export default function Upload() {
           {activeTab === "instagram" ? (
             <div className="shell-card">
               <InstagramImportPanel
+                data={instagramMedia}
                 instagramAuthUrl={instagramAuthUrl}
                 onImported={() => revalidator.revalidate()}
               />
