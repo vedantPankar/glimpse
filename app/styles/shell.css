@@ -1100,6 +1100,15 @@
   color: #d13b3b;
 }
 
+.shell-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.shell-icon-btn:disabled:hover {
+  background: transparent;
+}
+
 /* Instagram import grid */
 
 .shell-ig-grid {

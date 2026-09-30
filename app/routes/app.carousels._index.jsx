@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, redirect } from "react-router";
 import { authenticate } from "../shopify.server";
 import { createCarousel, deleteCarousel } from "../models/carousel.server";
 import { getCarouselsOverview } from "../models/analytics.server";
@@ -37,7 +37,7 @@ export async function action({ request }) {
       throw error;
     }
     await upsertCarouselMetaobject(admin, carousel);
-    return { ok: true };
+    return redirect(`/app/carousels/${carousel.id}`);
   }
 
   if (intent === "delete") {
