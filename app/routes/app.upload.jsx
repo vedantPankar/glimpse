@@ -286,6 +286,19 @@ function InstagramImportPanel({ data, instagramAuthUrl, onImported }) {
               ? "Importing…"
               : `Import selected (${selectedIds.size})`}
           </button>
+          {importFetcher.data?.error && (
+            <p style={{ color: "#d13b3b", fontSize: 12, marginTop: 8 }}>
+              {importFetcher.data.error}
+            </p>
+          )}
+          {importFetcher.data?.ok &&
+            !importFetcher.data.error &&
+            importFetcher.data.imported > 0 && (
+              <p style={{ color: "#1a9c6b", fontSize: 12, marginTop: 8 }}>
+                Imported {importFetcher.data.imported} video
+                {importFetcher.data.imported === 1 ? "" : "s"}.
+              </p>
+            )}
         </>
       )}
     </div>

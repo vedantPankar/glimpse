@@ -38,7 +38,7 @@ export async function action({ request }) {
   const formData = await request.formData();
   const items = JSON.parse(String(formData.get("items") || "[]"));
 
-  const imported = await Promise.all(
+  const results = await Promise.allSettled(
     items.map(async (item) => {
       const uploaded = await uploadRemoteVideo(item.mediaUrl);
       return createVideo({
@@ -56,7 +56,23 @@ export async function action({ request }) {
     }),
   );
 
-  return { ok: true, imported: imported.length };
+  const imported = results.filter((r) => r.status === "fulfilled").length;
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length > 0) {
+    for (const failure of failed) {
+      console.error("Failed to import Instagram video:", failure.reason);
+    }
+  }
+
+  return {
+    ok: true,
+    imported,
+    failedCount: failed.length,
+    error:
+      failed.length > 0
+        ? `${imported} imported, ${failed.length} failed. Try again for the failed ones.`
+        : null,
+  };
 }
 
 // This page's data (loader) and import action are now used directly from
