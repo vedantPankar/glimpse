@@ -238,6 +238,144 @@ export async function getTopPerformingVideos(shop, days = 30, limit = 5) {
     .slice(0, limit);
 }
 
+function pctChange(current, previous) {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+export async function getCarouselsOverview(shop, days = 30) {
+  const rangeEnd = new Date();
+  const rangeStart = new Date(rangeEnd);
+  rangeStart.setDate(rangeStart.getDate() - days);
+  const previousStart = new Date(rangeStart);
+  previousStart.setDate(previousStart.getDate() - days);
+
+  const carousels = await db.carousel.findMany({
+    where: { shop },
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { videos: true } },
+      videos: {
+        take: 3,
+        orderBy: { position: "asc" },
+        include: { video: true },
+      },
+    },
+  });
+
+  const carouselVideoRows = await db.carouselVideo.findMany({
+    where: { carousel: { shop } },
+    select: { carouselId: true, videoId: true },
+  });
+
+  const videoIdsByCarousel = new Map();
+  const allVideoIds = new Set();
+  for (const row of carouselVideoRows) {
+    if (!videoIdsByCarousel.has(row.carouselId)) {
+      videoIdsByCarousel.set(row.carouselId, []);
+    }
+    videoIdsByCarousel.get(row.carouselId).push(row.videoId);
+    allVideoIds.add(row.videoId);
+  }
+  const videoIds = Array.from(allVideoIds);
+
+  let videosThisPeriod = 0;
+  let videosPreviousPeriod = 0;
+  if (videoIds.length > 0) {
+    const videos = await db.video.findMany({
+      where: { id: { in: videoIds } },
+      select: { id: true, createdAt: true },
+    });
+    for (const video of videos) {
+      if (video.createdAt >= rangeStart) videosThisPeriod += 1;
+      else if (video.createdAt >= previousStart) videosPreviousPeriod += 1;
+    }
+  }
+
+  async function eventTotals(start, end) {
+    if (videoIds.length === 0) return { views: 0, clicks: 0 };
+    const rows = await db.videoEvent.groupBy({
+      by: ["eventType"],
+      where: {
+        shop,
+        videoId: { in: videoIds },
+        eventType: { in: ["view", "click"] },
+        createdAt: { gte: start, lt: end },
+      },
+      _count: { _all: true },
+    });
+    return rows.reduce(
+      (acc, row) => {
+        if (row.eventType === "view") acc.views = row._count._all;
+        else if (row.eventType === "click") acc.clicks = row._count._all;
+        return acc;
+      },
+      { views: 0, clicks: 0 },
+    );
+  }
+
+  const [currentTotals, previousTotals, statsRows] = await Promise.all([
+    eventTotals(rangeStart, rangeEnd),
+    eventTotals(previousStart, rangeStart),
+    videoIds.length
+      ? db.videoEvent.groupBy({
+          by: ["videoId", "eventType"],
+          where: {
+            shop,
+            videoId: { in: videoIds },
+            createdAt: { gte: rangeStart, lt: rangeEnd },
+          },
+          _count: { _all: true },
+          _sum: { orderValue: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const statsByVideoId = rowsToStatsByVideoId(statsRows);
+
+  const carouselsWithStats = carousels.map((carousel) => {
+    const ids = videoIdsByCarousel.get(carousel.id) || [];
+    const totals = emptyStats();
+    for (const id of ids) {
+      const stats = statsByVideoId[id];
+      if (!stats) continue;
+      totals.views += stats.views;
+      totals.clicks += stats.clicks;
+      totals.addToCarts += stats.addToCarts;
+      totals.orders += stats.orders;
+      totals.revenue += stats.revenue;
+    }
+    return { ...carousel, stats: totals };
+  });
+
+  const carouselsThisPeriod = carousels.filter(
+    (c) => c.createdAt >= rangeStart,
+  ).length;
+  const totalVideoSlots = carousels.reduce(
+    (sum, c) => sum + c._count.videos,
+    0,
+  );
+
+  return {
+    totals: {
+      carousels: { value: carousels.length, newThisPeriod: carouselsThisPeriod },
+      videos: {
+        value: totalVideoSlots,
+        changePct: pctChange(videosThisPeriod, videosPreviousPeriod),
+      },
+      views: {
+        value: currentTotals.views,
+        changePct: pctChange(currentTotals.views, previousTotals.views),
+      },
+      clicks: {
+        value: currentTotals.clicks,
+        changePct: pctChange(currentTotals.clicks, previousTotals.clicks),
+      },
+    },
+    carousels: carouselsWithStats,
+  };
+}
+
 export async function getTopPerformingCarousels(shop, days = 30, limit = 5) {
   const end = new Date();
   const start = new Date(end);
