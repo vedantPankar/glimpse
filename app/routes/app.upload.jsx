@@ -12,11 +12,15 @@ export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
 
+  const duration = formData.get("duration");
+
   await createVideo({
     shop: session.shop,
     cloudinaryId: String(formData.get("cloudinaryId")),
     url: String(formData.get("url")),
     thumbnailUrl: String(formData.get("thumbnailUrl")),
+    duration: duration ? Number(duration) : null,
+    source: "device",
   });
 
   return { ok: true };
@@ -72,6 +76,9 @@ export default function Upload() {
         createData.append("cloudinaryId", uploaded.public_id);
         createData.append("url", uploaded.secure_url);
         createData.append("thumbnailUrl", thumbnailUrl);
+        if (uploaded.duration) {
+          createData.append("duration", String(uploaded.duration));
+        }
 
         await fetch("/app/upload", { method: "POST", body: createData });
 

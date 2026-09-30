@@ -4,7 +4,14 @@ export function listCarousels(shop) {
   return db.carousel.findMany({
     where: { shop },
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { videos: true } } },
+    include: {
+      _count: { select: { videos: true } },
+      videos: {
+        take: 3,
+        orderBy: { position: "asc" },
+        include: { video: true },
+      },
+    },
   });
 }
 

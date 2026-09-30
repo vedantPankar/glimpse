@@ -41,6 +41,7 @@ model Video {
   thumbnailUrl String?
   title        String?
   duration     Float?
+  source       String   @default("device")
   createdAt    DateTime @default(now())
   products     VideoProduct[]
   carousels    CarouselVideo[]
@@ -65,6 +66,7 @@ model Carousel {
   name      String
   style     String          @default("row")
   createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   videos    CarouselVideo[]
 
   @@unique([shop, name])
