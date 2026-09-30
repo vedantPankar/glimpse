@@ -8,13 +8,15 @@ import {
   deleteCarouselMetaobject,
 } from "../utils/carouselMetaobject.server";
 import { formatDuration, formatDate } from "../utils/format";
+import { getThemeEditorUrl } from "../utils/themeEditor";
 
 const RANGE_DAYS = 30;
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
   const overview = await getCarouselsOverview(session.shop, RANGE_DAYS);
-  return overview;
+  const themeEditorUrl = getThemeEditorUrl(session.shop);
+  return { ...overview, themeEditorUrl };
 }
 
 export async function action({ request }) {
@@ -301,7 +303,7 @@ function MobilePreview({ carousel }) {
 }
 
 export default function CarouselsIndex() {
-  const { totals, carousels } = useLoaderData();
+  const { totals, carousels, themeEditorUrl } = useLoaderData();
   const createFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const nameInputRef = useRef(null);
@@ -358,13 +360,23 @@ export default function CarouselsIndex() {
             Create and manage video carousels for your Shopify storefront.
           </p>
         </div>
-        <button
-          type="button"
-          className="shell-btn-primary"
-          onClick={scrollToCreate}
-        >
-          + Create carousel
-        </button>
+        <div className="shell-page-actions">
+          <a
+            href={themeEditorUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shell-btn-secondary"
+          >
+            Add to your theme
+          </a>
+          <button
+            type="button"
+            className="shell-btn-primary"
+            onClick={scrollToCreate}
+          >
+            + Create carousel
+          </button>
+        </div>
       </div>
 
       <div className="shell-layout">

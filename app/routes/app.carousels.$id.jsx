@@ -11,6 +11,7 @@ import {
   updateCarouselStyle,
 } from "../models/carousel.server";
 import { upsertCarouselMetaobject } from "../utils/carouselMetaobject.server";
+import { getThemeEditorUrl } from "../utils/themeEditor";
 
 const STYLE_OPTIONS = [
   { value: "row", label: "Row (horizontal scroll)" },
@@ -28,8 +29,9 @@ export async function loader({ request, params }) {
   const allVideos = await listVideos(session.shop);
   const includedIds = new Set(carousel.videos.map((cv) => cv.videoId));
   const availableVideos = allVideos.filter((v) => !includedIds.has(v.id));
+  const themeEditorUrl = getThemeEditorUrl(session.shop);
 
-  return { carousel, availableVideos };
+  return { carousel, availableVideos, themeEditorUrl };
 }
 
 export async function action({ request, params }) {
@@ -106,7 +108,7 @@ function VideoRow({ video, right }) {
 }
 
 export default function CarouselDetail() {
-  const { carousel, availableVideos } = useLoaderData();
+  const { carousel, availableVideos, themeEditorUrl } = useLoaderData();
   const renameFetcher = useFetcher();
   const addFetcher = useFetcher();
   const removeFetcher = useFetcher();
@@ -151,6 +153,14 @@ export default function CarouselDetail() {
             Manage the videos and storefront style for this carousel.
           </p>
         </div>
+        <a
+          href={themeEditorUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="shell-btn-primary"
+        >
+          Add to your theme
+        </a>
       </div>
 
       <div className="shell-layout">
