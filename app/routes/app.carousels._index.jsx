@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { useLoaderData, useFetcher, redirect } from "react-router";
+import { Link, useLoaderData, useFetcher, redirect } from "react-router";
 import { authenticate } from "../shopify.server";
 import { createCarousel, deleteCarousel } from "../models/carousel.server";
 import { getCarouselsOverview } from "../models/analytics.server";
@@ -109,13 +109,13 @@ function CarouselRow({ carousel, onDelete }) {
         {thumbs.map((cv) => (
           <RowThumb key={cv.videoId} video={cv.video} />
         ))}
-        <a
-          href={`/app/carousels/${carousel.id}`}
+        <Link
+          to={`/app/carousels/${carousel.id}`}
           className="shell-row-thumb-more"
           title="Manage videos"
         >
           {remaining > 0 ? `+${remaining}` : "+"}
-        </a>
+        </Link>
       </div>
 
       <div className="shell-row-body">
@@ -129,12 +129,12 @@ function CarouselRow({ carousel, onDelete }) {
             </div>
           </div>
           <div className="shell-row-actions">
-            <a
-              href={`/app/carousels/${carousel.id}`}
+            <Link
+              to={`/app/carousels/${carousel.id}`}
               className="shell-btn-secondary"
             >
               Edit
-            </a>
+            </Link>
             <button
               type="button"
               className="shell-btn-danger-text"
@@ -189,8 +189,8 @@ function CarouselGridCard({ carousel, onDelete }) {
   const thumbs = carousel.videos.slice(0, 3);
   return (
     <div className="shell-card" style={{ padding: 0, overflow: "hidden" }}>
-      <a
-        href={`/app/carousels/${carousel.id}`}
+      <Link
+        to={`/app/carousels/${carousel.id}`}
         style={{ color: "inherit", textDecoration: "none", display: "block" }}
       >
         <div className="shell-carousel-thumbs">
@@ -214,7 +214,7 @@ function CarouselGridCard({ carousel, onDelete }) {
             {carousel.stats.views} views
           </div>
         </div>
-      </a>
+      </Link>
       <div
         style={{
           display: "flex",
@@ -222,13 +222,13 @@ function CarouselGridCard({ carousel, onDelete }) {
           padding: "0 12px 12px",
         }}
       >
-        <a
-          href={`/app/carousels/${carousel.id}`}
+        <Link
+          to={`/app/carousels/${carousel.id}`}
           className="shell-btn-secondary"
           style={{ flex: 1, justifyContent: "center" }}
         >
           Edit
-        </a>
+        </Link>
         <button
           type="button"
           className="shell-btn-danger-text"

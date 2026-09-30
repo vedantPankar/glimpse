@@ -1,4 +1,4 @@
-import { useLoaderData, useRouteError } from "react-router";
+import { Link, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { listVideos } from "../models/video.server";
@@ -33,7 +33,7 @@ export const loader = async ({ request }) => {
 
 function ActionCard({ href, icon, gradient, title, subtitle }) {
   return (
-    <a href={href} className="shell-action-card">
+    <Link to={href} className="shell-action-card">
       <div className="shell-action-icon" style={{ background: gradient }}>
         <s-icon type={icon} color="base" size="small" />
       </div>
@@ -41,7 +41,7 @@ function ActionCard({ href, icon, gradient, title, subtitle }) {
         <div className="shell-action-title">{title}</div>
         <div className="shell-action-subtitle">{subtitle}</div>
       </div>
-    </a>
+    </Link>
   );
 }
 
@@ -50,7 +50,7 @@ function VideoCard({ video }) {
   const isInstagram = video.source === "instagram";
 
   return (
-    <a href={`/app/reels/${video.id}`} className="shell-video-card">
+    <Link to={`/app/reels/${video.id}`} className="shell-video-card">
       <div className="shell-video-thumb">
         <img src={video.thumbnailUrl || video.url} alt={video.title || ""} />
         {duration && <span className="shell-video-duration">{duration}</span>}
@@ -63,7 +63,7 @@ function VideoCard({ video }) {
         <s-icon type={isInstagram ? "camera" : "desktop"} size="small" />
         {isInstagram ? "Instagram" : "Device"}
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -71,7 +71,7 @@ function CarouselCard({ carousel }) {
   const thumbs = carousel.videos.slice(0, 3);
 
   return (
-    <a href={`/app/carousels/${carousel.id}`} className="shell-carousel-card">
+    <Link to={`/app/carousels/${carousel.id}`} className="shell-carousel-card">
       <div className="shell-carousel-thumbs">
         {thumbs.length === 0 ? (
           <div />
@@ -92,7 +92,7 @@ function CarouselCard({ carousel }) {
           · Updated {formatRelativeDate(carousel.updatedAt)}
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
@@ -167,7 +167,7 @@ export default function Index() {
           <div className="shell-card">
             <div className="shell-section-header">
               <h2>Recent videos</h2>
-              <a href="/app/reels">View all →</a>
+              <Link to="/app/reels">View all →</Link>
             </div>
             {recentVideos.length === 0 ? (
               <p className="shell-empty-note">
@@ -185,7 +185,7 @@ export default function Index() {
           <div className="shell-card">
             <div className="shell-section-header">
               <h2>Your carousels</h2>
-              <a href="/app/carousels">View all →</a>
+              <Link to="/app/carousels">View all →</Link>
             </div>
             {recentCarousels.length === 0 ? (
               <p className="shell-empty-note">
@@ -210,9 +210,9 @@ export default function Index() {
               Showcase products, reviews, UGC and more with engaging video
               carousels for your storefront.
             </p>
-            <a href="/app/carousels" className="shell-action-card" style={{ justifyContent: "center" }}>
+            <Link to="/app/carousels" className="shell-action-card" style={{ justifyContent: "center" }}>
               <div className="shell-action-title">+ Create carousel</div>
-            </a>
+            </Link>
           </div>
 
           <div className="shell-card">

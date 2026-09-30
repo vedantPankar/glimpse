@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Link,
   useFetcher,
   useLoaderData,
   useNavigate,
@@ -79,13 +80,13 @@ function HistoryRow({ video, onDelete, deleting }) {
       <span className="shell-table-thumb">
         <img src={video.thumbnailUrl || video.url} alt="" />
       </span>
-      <a
-        href={`/app/reels/${video.id}`}
+      <Link
+        to={`/app/reels/${video.id}`}
         className="shell-table-name"
         style={{ color: "inherit" }}
       >
         {video.title || video.cloudinaryId}
-      </a>
+      </Link>
       <span className="shell-source-badge">
         <s-icon type={isInstagram ? "camera" : "desktop"} size="small" />
         {isInstagram ? "Instagram" : "Device"}
@@ -401,9 +402,9 @@ export default function Upload() {
             and carousels.
           </p>
         </div>
-        <a href="/app/reels" className="shell-btn-secondary">
+        <Link to="/app/reels" className="shell-btn-secondary">
           View reels
-        </a>
+        </Link>
       </div>
 
       <div className="shell-layout">

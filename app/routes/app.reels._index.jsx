@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLoaderData, useFetcher } from "react-router";
+import { Link, useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "../shopify.server";
 import { listVideos, deleteVideo } from "../models/video.server";
 import { destroyCloudinaryAsset } from "../utils/cloudinary.server";
@@ -135,9 +135,9 @@ function ReelCard({ video, stat, isSelected, onSelect, onDelete, deleting }) {
       </div>
       <VideoStatRow stat={stat} />
       <div className="shell-reel-actions">
-        <a href={`/app/reels/${video.id}`} className="shell-btn-secondary">
+        <Link to={`/app/reels/${video.id}`} className="shell-btn-secondary">
           Manage products
-        </a>
+        </Link>
         <button
           type="button"
           className="shell-btn-danger-text"
@@ -175,9 +175,9 @@ function ReelRow({ video, stat, onSelect, onDelete, deleting }) {
             </div>
           </div>
           <div className="shell-row-actions">
-            <a href={`/app/reels/${video.id}`} className="shell-btn-secondary">
+            <Link to={`/app/reels/${video.id}`} className="shell-btn-secondary">
               Manage products
-            </a>
+            </Link>
             <button
               type="button"
               className="shell-btn-danger-text"
@@ -287,9 +287,9 @@ export default function ReelsIndex() {
         </div>
         <div className="shell-page-actions">
           {instagramConnected ? (
-            <a href="/app/upload?tab=instagram" className="shell-btn-secondary">
+            <Link to="/app/upload?tab=instagram" className="shell-btn-secondary">
               Import from Instagram
-            </a>
+            </Link>
           ) : (
             <a
               href={instagramAuthUrl}
@@ -300,9 +300,9 @@ export default function ReelsIndex() {
               Connect Instagram
             </a>
           )}
-          <a href="/app/upload" className="shell-btn-primary">
+          <Link to="/app/upload" className="shell-btn-primary">
             + Upload video
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -450,7 +450,7 @@ export default function ReelsIndex() {
               <div className="shell-card">
                 <div className="shell-section-header">
                   <h2>Video details</h2>
-                  <a href={`/app/reels/${selectedVideo.id}`}>Edit</a>
+                  <Link to={`/app/reels/${selectedVideo.id}`}>Edit</Link>
                 </div>
                 <div className="shell-detail-row">
                   <span className="shell-detail-label">File name</span>
