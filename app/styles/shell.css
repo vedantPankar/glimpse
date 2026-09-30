@@ -1065,6 +1065,129 @@
   display: inline-block;
 }
 
+/* Upload page */
+
+.shell-tab-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.shell-tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--shell-border);
+  background: var(--shell-card-bg);
+  color: var(--shell-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.shell-tab-button.is-active {
+  border-color: var(--shell-accent);
+  background: #f2eeff;
+  color: var(--shell-accent);
+}
+
+.shell-upload-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f2eeff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.shell-upload-heading {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.shell-upload-subtext {
+  text-align: center;
+  font-size: 13px;
+  color: var(--shell-text-subdued);
+  margin-bottom: 20px;
+}
+
+.shell-upload-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.shell-info-pills-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.shell-info-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--shell-card-bg);
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.shell-info-pill-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #f2eeff;
+  color: var(--shell-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shell-info-pill-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shell-info-pill-subtitle {
+  font-size: 11px;
+  color: var(--shell-text-subdued);
+}
+
+.shell-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--shell-text-subdued);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.shell-icon-btn:hover {
+  background: var(--shell-bg-page);
+}
+
+.shell-icon-btn.is-danger:hover {
+  background: #fdf1f1;
+  color: #d13b3b;
+}
+
 @media (max-width: 860px) {
   .shell {
     flex-direction: column;
