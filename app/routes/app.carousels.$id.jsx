@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, Link, redirect } from "react-router";
 import { authenticate } from "../shopify.server";
 import { listVideos } from "../models/video.server";
 import {
@@ -54,11 +54,10 @@ export async function action({ request, params }) {
     }
     try {
       await upsertCarouselMetaobject(admin, carousel);
-      return { ok: true };
     } catch (error) {
       console.error("Failed to sync carousel metaobject:", error);
-      return { ok: true };
     }
+    return redirect("/app/carousels");
   }
 
   if (intent === "add") {
@@ -137,13 +136,13 @@ export default function CarouselDetail() {
 
   return (
     <div>
-      <a
-        href="/app/carousels"
+      <Link
+        to="/app/carousels"
         className="shell-btn-secondary"
         style={{ display: "inline-flex", marginBottom: 16 }}
       >
         ← Carousels
-      </a>
+      </Link>
 
       <div className="shell-page-header">
         <div>
