@@ -141,12 +141,17 @@ export default function CarouselDetail() {
               </s-option>
             ))}
           </s-select>
-          <s-paragraph>
+          <s-paragraph tone="subdued">
             This is the default style shown on your storefront. A merchant
             can still override it for a specific block placement in the
             theme editor.
           </s-paragraph>
-          <s-box border="base" borderRadius="base" padding="base">
+          <s-box
+            border="base"
+            borderRadius="base"
+            padding="base"
+            background="subdued"
+          >
             <CarouselPreview style={previewStyle} videos={carousel.videos} />
           </s-box>
         </s-stack>
@@ -154,7 +159,11 @@ export default function CarouselDetail() {
 
       <s-section heading="Videos in this carousel">
         {carousel.videos.length === 0 ? (
-          <s-paragraph>No videos yet. Add some below.</s-paragraph>
+          <s-empty-state heading="No videos yet">
+            <s-paragraph slot="subheading">
+              Add videos from the list below to build this carousel.
+            </s-paragraph>
+          </s-empty-state>
         ) : (
           <s-stack direction="block" gap="base">
             {carousel.videos.map((cv, index) => (
@@ -171,6 +180,7 @@ export default function CarouselDetail() {
                   justifyContent="space-between"
                 >
                   <s-stack direction="inline" gap="base" alignItems="center">
+                    <s-badge>{index + 1}</s-badge>
                     <s-thumbnail
                       src={cv.video.thumbnailUrl || cv.video.url}
                       alt={cv.video.title || "Video"}
@@ -178,29 +188,33 @@ export default function CarouselDetail() {
                     />
                     <s-text>{cv.video.title || cv.video.cloudinaryId}</s-text>
                   </s-stack>
-                  <s-stack direction="inline" gap="small">
+                  <s-stack direction="inline" gap="small-200">
                     <s-button
                       variant="tertiary"
+                      icon="arrow-up"
+                      accessibilityLabel="Move up"
                       {...(index === 0 ? { disabled: true } : {})}
                       onClick={() => move(index, -1)}
-                    >
-                      Up
-                    </s-button>
+                    />
                     <s-button
                       variant="tertiary"
+                      icon="arrow-down"
+                      accessibilityLabel="Move down"
                       {...(index === carousel.videos.length - 1
                         ? { disabled: true }
                         : {})}
                       onClick={() => move(index, 1)}
-                    >
-                      Down
-                    </s-button>
+                    />
                     <removeFetcher.Form method="post">
                       <input type="hidden" name="intent" value="remove" />
                       <input type="hidden" name="videoId" value={cv.videoId} />
-                      <s-button tone="critical" variant="tertiary" type="submit">
-                        Remove
-                      </s-button>
+                      <s-button
+                        tone="critical"
+                        variant="tertiary"
+                        icon="delete"
+                        accessibilityLabel="Remove from carousel"
+                        type="submit"
+                      />
                     </removeFetcher.Form>
                   </s-stack>
                 </s-stack>
@@ -212,7 +226,7 @@ export default function CarouselDetail() {
 
       <s-section heading="Add videos">
         {availableVideos.length === 0 ? (
-          <s-paragraph>
+          <s-paragraph tone="subdued">
             All uploaded videos are already in this carousel.
           </s-paragraph>
         ) : (
@@ -241,7 +255,9 @@ export default function CarouselDetail() {
                   <addFetcher.Form method="post">
                     <input type="hidden" name="intent" value="add" />
                     <input type="hidden" name="videoId" value={video.id} />
-                    <s-button type="submit">Add</s-button>
+                    <s-button type="submit" icon="plus" variant="secondary">
+                      Add
+                    </s-button>
                   </addFetcher.Form>
                 </s-stack>
               </s-box>

@@ -26,11 +26,11 @@ export default function Upload() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleFileChange = useCallback(
-    async (event) => {
-      const file = event.target.files?.[0];
+  const uploadFile = useCallback(
+    async (file) => {
       if (!file) return;
 
       setUploading(true);
@@ -78,12 +78,29 @@ export default function Upload() {
         navigate("/app/reels");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
-      } finally {
         setUploading(false);
-        event.target.value = "";
       }
     },
     [navigate],
+  );
+
+  const handleFileChange = useCallback(
+    (event) => {
+      const file = event.target.files?.[0];
+      uploadFile(file);
+      event.target.value = "";
+    },
+    [uploadFile],
+  );
+
+  const handleDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      setDragging(false);
+      const file = event.dataTransfer.files?.[0];
+      uploadFile(file);
+    },
+    [uploadFile],
   );
 
   return (
@@ -95,17 +112,45 @@ export default function Upload() {
           </s-banner>
         )}
 
-        <s-paragraph>
-          Choose a video file to upload to Cloudinary. Once it finishes,
-          you'll be taken to the reels library.
-        </s-paragraph>
-
-        <s-button
-          onClick={() => fileInputRef.current?.click()}
-          {...(uploading ? { loading: true } : {})}
+        <s-box
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          border="base"
+          borderStyle="dashed"
+          borderWidth="large"
+          borderColor={dragging ? "strong" : "subdued"}
+          borderRadius="large"
+          background={dragging ? "subdued" : "transparent"}
+          padding="large-100"
         >
-          Choose video
-        </s-button>
+          <s-stack
+            direction="block"
+            gap="base"
+            alignItems="center"
+            justifyContent="center"
+          >
+            {uploading ? (
+              <>
+                <s-spinner accessibilityLabel="Uploading video" />
+                <s-text tone="subdued">Uploading your video…</s-text>
+              </>
+            ) : (
+              <>
+                <s-icon type="upload" tone="info" />
+                <s-heading>Drag and drop a video, or click to browse</s-heading>
+                <s-text tone="subdued">
+                  Once it finishes, you'll be taken to the reels library.
+                </s-text>
+                <s-button variant="secondary">Choose video</s-button>
+              </>
+            )}
+          </s-stack>
+        </s-box>
         <input
           ref={fileInputRef}
           type="file"

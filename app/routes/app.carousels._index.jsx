@@ -41,6 +41,20 @@ export async function action({ request }) {
   throw new Response("Bad request", { status: 400 });
 }
 
+const STYLE_LABELS = {
+  row: "Row",
+  stack: "Stack",
+  bubbles: "Bubbles",
+  spotlight: "Spotlight",
+};
+
+const STYLE_ICONS = {
+  row: "layout-columns-3",
+  stack: "layout-rows-2",
+  bubbles: "circle",
+  spotlight: "star",
+};
+
 export default function CarouselsIndex() {
   const { carousels } = useLoaderData();
   const createFetcher = useFetcher();
@@ -60,6 +74,7 @@ export default function CarouselsIndex() {
             />
             <s-button
               type="submit"
+              icon="plus"
               {...(createFetcher.state !== "idle" ? { loading: true } : {})}
             >
               Create carousel
@@ -69,11 +84,13 @@ export default function CarouselsIndex() {
       </s-section>
 
       {carousels.length === 0 ? (
-        <s-section heading="No carousels yet">
-          <s-paragraph>
-            Create a carousel above, then add videos to it to control what
-            shows in a storefront carousel block.
-          </s-paragraph>
+        <s-section>
+          <s-empty-state heading="No carousels yet">
+            <s-paragraph slot="subheading">
+              Create a carousel above, then add videos to it to control what
+              shows in a storefront carousel block.
+            </s-paragraph>
+          </s-empty-state>
         </s-section>
       ) : (
         <s-section heading="Your carousels">
@@ -91,17 +108,22 @@ export default function CarouselsIndex() {
                   alignItems="center"
                   justifyContent="space-between"
                 >
-                  <s-stack direction="block" gap="small">
+                  <s-stack direction="block" gap="small-200">
                     <s-button
                       href={`/app/carousels/${carousel.id}`}
                       variant="tertiary"
                     >
                       {carousel.name}
                     </s-button>
-                    <s-text tone="subdued">
-                      {carousel._count.videos} video
-                      {carousel._count.videos === 1 ? "" : "s"}
-                    </s-text>
+                    <s-stack direction="inline" gap="small-200" alignItems="center">
+                      <s-badge icon={STYLE_ICONS[carousel.style] || "slideshow"}>
+                        {STYLE_LABELS[carousel.style] || carousel.style}
+                      </s-badge>
+                      <s-text tone="subdued">
+                        {carousel._count.videos} video
+                        {carousel._count.videos === 1 ? "" : "s"}
+                      </s-text>
+                    </s-stack>
                   </s-stack>
                   <deleteFetcher.Form method="post">
                     <input type="hidden" name="intent" value="delete" />
@@ -109,14 +131,14 @@ export default function CarouselsIndex() {
                     <s-button
                       tone="critical"
                       variant="tertiary"
+                      icon="delete"
+                      accessibilityLabel={`Delete ${carousel.name}`}
                       type="submit"
                       {...(deleteFetcher.state !== "idle" &&
                       deleteFetcher.formData?.get("id") === carousel.id
                         ? { loading: true }
                         : {})}
-                    >
-                      Delete
-                    </s-button>
+                    />
                   </deleteFetcher.Form>
                 </s-stack>
               </s-box>
