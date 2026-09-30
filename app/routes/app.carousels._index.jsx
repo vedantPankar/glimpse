@@ -25,9 +25,17 @@ export async function action({ request }) {
   if (intent === "create") {
     const name = String(formData.get("name") || "").trim();
     if (!name) {
-      throw new Response("Carousel name is required", { status: 400 });
+      return { error: "Carousel name is required." };
     }
-    const carousel = await createCarousel(session.shop, name);
+    let carousel;
+    try {
+      carousel = await createCarousel(session.shop, name);
+    } catch (error) {
+      if (error.code === "P2002") {
+        return { error: `A carousel named "${name}" already exists.` };
+      }
+      throw error;
+    }
     await upsertCarouselMetaobject(admin, carousel);
     return { ok: true };
   }
@@ -363,27 +371,34 @@ export default function CarouselsIndex() {
             <div className="shell-create-card-icon">
               <s-icon type="slideshow" color="base" size="small" />
             </div>
-            <createFetcher.Form
-              method="post"
-              className="shell-create-card-form"
-            >
-              <input type="hidden" name="intent" value="create" />
-              <input
-                ref={nameInputRef}
-                type="text"
-                name="name"
-                className="shell-input"
-                placeholder="e.g. Homepage reels, Product highlights, Customer reviews"
-                required
-              />
-              <button
-                type="submit"
-                className="shell-btn-primary"
-                disabled={createFetcher.state !== "idle"}
+            <div style={{ flex: 1 }}>
+              <createFetcher.Form
+                method="post"
+                className="shell-create-card-form"
               >
-                Create carousel
-              </button>
-            </createFetcher.Form>
+                <input type="hidden" name="intent" value="create" />
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  name="name"
+                  className="shell-input"
+                  placeholder="e.g. Homepage reels, Product highlights, Customer reviews"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="shell-btn-primary"
+                  disabled={createFetcher.state !== "idle"}
+                >
+                  Create carousel
+                </button>
+              </createFetcher.Form>
+              {createFetcher.data?.error && (
+                <p style={{ color: "#d13b3b", fontSize: 12, marginTop: 8 }}>
+                  {createFetcher.data.error}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="shell-controls-bar">
