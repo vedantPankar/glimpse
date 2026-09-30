@@ -1120,6 +1120,7 @@
 
 .shell-ig-item {
   position: relative;
+  display: block;
   cursor: pointer;
   border-radius: 10px;
   overflow: hidden;
@@ -1128,7 +1129,7 @@
   border: 2px solid transparent;
 }
 
-.shell-ig-item.is-selected {
+.shell-ig-item:has(.shell-ig-native-checkbox:checked) {
   border-color: var(--shell-accent);
 }
 
@@ -1139,28 +1140,14 @@
   display: block;
 }
 
-.shell-ig-checkbox {
+.shell-ig-native-checkbox {
   position: absolute;
   top: 6px;
   left: 6px;
   width: 18px;
   height: 18px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--shell-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.shell-ig-item.is-selected .shell-ig-checkbox {
-  background: var(--shell-accent);
-  border-color: var(--shell-accent);
-  color: #fff;
-}
-
-.shell-ig-checkbox s-icon {
-  filter: brightness(0) invert(1);
+  z-index: 1;
+  cursor: pointer;
 }
 
 .shell-ig-toolbar {

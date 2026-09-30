@@ -123,7 +123,7 @@ export default function Index() {
             />
             {instagramConnected ? (
               <ActionCard
-                href="/app/upload?tab=instagram"
+                href="/app/instagram/media"
                 icon="camera"
                 gradient="linear-gradient(135deg, #f9ce34, #ee2a7b, #6228d7)"
                 title="Import from Instagram"
