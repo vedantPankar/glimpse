@@ -287,7 +287,7 @@ export default function ReelsIndex() {
         </div>
         <div className="shell-page-actions">
           {instagramConnected ? (
-            <a href="/app/instagram/media" className="shell-btn-secondary">
+            <a href="/app/upload?tab=instagram" className="shell-btn-secondary">
               Import from Instagram
             </a>
           ) : (

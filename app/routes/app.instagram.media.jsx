@@ -1,6 +1,10 @@
-import { useLoaderData, useFetcher } from "react-router";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
-import { getInstagramConnection, deleteInstagramConnection } from "../models/instagramConnection.server";
+import {
+  getInstagramConnection,
+  deleteInstagramConnection,
+} from "../models/instagramConnection.server";
 import { fetchInstagramVideoMedia } from "../utils/instagram.server";
 import { uploadRemoteVideo } from "../utils/cloudinary.server";
 import { createVideo } from "../models/video.server";
@@ -32,101 +36,38 @@ export async function loader({ request }) {
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
-  const mediaUrl = String(formData.get("mediaUrl"));
-  const thumbnailUrl = formData.get("thumbnailUrl");
-  const caption = formData.get("caption");
+  const items = JSON.parse(String(formData.get("items") || "[]"));
 
-  const uploaded = await uploadRemoteVideo(mediaUrl);
+  const imported = await Promise.all(
+    items.map(async (item) => {
+      const uploaded = await uploadRemoteVideo(item.mediaUrl);
+      return createVideo({
+        shop: session.shop,
+        cloudinaryId: uploaded.public_id,
+        url: uploaded.secure_url,
+        thumbnailUrl: item.thumbnailUrl || null,
+        title: item.caption ? String(item.caption).slice(0, 200) : null,
+        duration: uploaded.duration ?? null,
+        width: uploaded.width ?? null,
+        height: uploaded.height ?? null,
+        fileSize: uploaded.bytes ?? null,
+        source: "instagram",
+      });
+    }),
+  );
 
-  await createVideo({
-    shop: session.shop,
-    cloudinaryId: uploaded.public_id,
-    url: uploaded.secure_url,
-    thumbnailUrl: thumbnailUrl ? String(thumbnailUrl) : null,
-    title: caption ? String(caption).slice(0, 200) : null,
-    duration: uploaded.duration ?? null,
-    width: uploaded.width ?? null,
-    height: uploaded.height ?? null,
-    fileSize: uploaded.bytes ?? null,
-    source: "instagram",
-  });
-
-  return { ok: true };
+  return { ok: true, imported: imported.length };
 }
 
+// This page's data (loader) and import action are now used directly from
+// the Upload page's Instagram tab via fetchers. Anyone landing here
+// directly (an old link, a bookmark) is sent there instead.
 export default function InstagramMedia() {
-  const { connected, media, error } = useLoaderData();
-  const importFetcher = useFetcher();
+  const navigate = useNavigate();
 
-  if (!connected) {
-    return (
-      <s-page heading="Import from Instagram">
-        <s-link slot="breadcrumb-actions" href="/app/reels">
-          Reels
-        </s-link>
-        <s-section>
-          {error && (
-            <s-banner tone="critical" heading="Not connected">
-              {error}
-            </s-banner>
-          )}
-          <s-paragraph>
-            Connect your Instagram account from the Reels library page first.
-          </s-paragraph>
-        </s-section>
-      </s-page>
-    );
-  }
+  useEffect(() => {
+    navigate("/app/upload?tab=instagram", { replace: true });
+  }, [navigate]);
 
-  return (
-    <s-page heading="Import from Instagram">
-      <s-link slot="breadcrumb-actions" href="/app/reels">
-        Reels
-      </s-link>
-      <s-section heading="Your Instagram Reels">
-        {error && (
-          <s-banner tone="critical" heading="Couldn't load some media">
-            {error}
-          </s-banner>
-        )}
-        {media.length === 0 ? (
-          <s-paragraph>No video posts found on your Instagram account.</s-paragraph>
-        ) : (
-          <s-grid gridTemplateColumns="repeat(auto-fill, minmax(160px, 1fr))" gap="base">
-            {media.map((item) => (
-              <s-grid-item key={item.id}>
-                <s-box border="base" borderRadius="base" padding="base">
-                  <s-stack direction="block" gap="base">
-                    <s-thumbnail
-                      src={item.thumbnail_url || item.media_url}
-                      alt={item.caption || "Instagram video"}
-                      size="large"
-                    />
-                    <importFetcher.Form method="post">
-                      <input type="hidden" name="mediaUrl" value={item.media_url} />
-                      <input
-                        type="hidden"
-                        name="thumbnailUrl"
-                        value={item.thumbnail_url || ""}
-                      />
-                      <input type="hidden" name="caption" value={item.caption || ""} />
-                      <s-button
-                        type="submit"
-                        {...(importFetcher.state !== "idle" &&
-                        importFetcher.formData?.get("mediaUrl") === item.media_url
-                          ? { loading: true }
-                          : {})}
-                      >
-                        Import
-                      </s-button>
-                    </importFetcher.Form>
-                  </s-stack>
-                </s-box>
-              </s-grid-item>
-            ))}
-          </s-grid>
-        )}
-      </s-section>
-    </s-page>
-  );
+  return null;
 }

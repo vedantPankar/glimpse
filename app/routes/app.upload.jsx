@@ -1,5 +1,11 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { useFetcher, useLoaderData, useNavigate } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+  useRevalidator,
+  useSearchParams,
+} from "react-router";
 import { authenticate } from "../shopify.server";
 import { createVideo, listVideos } from "../models/video.server";
 import { getInstagramConnection } from "../models/instagramConnection.server";
@@ -112,9 +118,159 @@ function HistoryRow({ video, onDelete, deleting }) {
   );
 }
 
+function InstagramImportPanel({ instagramAuthUrl, onImported }) {
+  const mediaFetcher = useFetcher();
+  const importFetcher = useFetcher();
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+
+  useEffect(() => {
+    if (mediaFetcher.state === "idle" && !mediaFetcher.data) {
+      mediaFetcher.load("/app/instagram/media");
+    }
+  }, [mediaFetcher]);
+
+  useEffect(() => {
+    if (importFetcher.data?.ok) {
+      setSelectedIds(new Set());
+      onImported();
+    }
+  }, [importFetcher.data, onImported]);
+
+  const data = mediaFetcher.data;
+  const loading = !data || mediaFetcher.state !== "idle";
+
+  const toggle = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleImport = () => {
+    const items = (data?.media || [])
+      .filter((item) => selectedIds.has(item.id))
+      .map((item) => ({
+        mediaUrl: item.media_url,
+        thumbnailUrl: item.thumbnail_url || "",
+        caption: item.caption || "",
+      }));
+    importFetcher.submit(
+      { items: JSON.stringify(items) },
+      { method: "post", action: "/app/instagram/media" },
+    );
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
+        <s-spinner accessibilityLabel="Loading Instagram videos" />
+      </div>
+    );
+  }
+
+  if (!data.connected) {
+    return (
+      <div style={{ textAlign: "center", padding: 40 }}>
+        <p className="shell-empty-note" style={{ marginBottom: 16 }}>
+          {data.error ||
+            "Connect your Instagram account to import your existing videos."}
+        </p>
+        <a
+          href={instagramAuthUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="shell-btn-primary"
+        >
+          Connect Instagram
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="shell-ig-toolbar">
+        <div>
+          <div className="shell-upload-heading" style={{ textAlign: "left" }}>
+            Select videos to import
+          </div>
+          <p
+            className="shell-upload-subtext"
+            style={{ textAlign: "left", marginBottom: 0 }}
+          >
+            Choose one or multiple videos from your account.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="shell-btn-secondary"
+          onClick={() => mediaFetcher.load("/app/instagram/media")}
+        >
+          <s-icon type="refresh" size="small" /> Refresh
+        </button>
+      </div>
+
+      {data.error && (
+        <div
+          className="shell-card"
+          style={{
+            background: "#fdf1f1",
+            border: "1px solid #f6c9c9",
+            color: "#d13b3b",
+            margin: "12px 0",
+          }}
+        >
+          {data.error}
+        </div>
+      )}
+
+      {data.media.length === 0 ? (
+        <p className="shell-empty-note">
+          No video posts found on your Instagram account.
+        </p>
+      ) : (
+        <>
+          <div className="shell-ig-grid">
+            {data.media.map((item) => {
+              const isSelected = selectedIds.has(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className={`shell-ig-item${isSelected ? " is-selected" : ""}`}
+                  onClick={() => toggle(item.id)}
+                >
+                  <img src={item.thumbnail_url || item.media_url} alt="" />
+                  <span className="shell-ig-checkbox">
+                    {isSelected && <s-icon type="check" size="small" />}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="shell-btn-primary"
+            disabled={selectedIds.size === 0 || importFetcher.state !== "idle"}
+            onClick={handleImport}
+          >
+            {importFetcher.state !== "idle"
+              ? "Importing…"
+              : `Import selected (${selectedIds.size})`}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Upload() {
-  const { videos, instagramConnected, instagramAuthUrl } = useLoaderData();
+  const { videos, instagramAuthUrl } = useLoaderData();
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "instagram" ? "instagram" : "device";
   const deleteFetcher = useFetcher();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -253,28 +409,32 @@ export default function Upload() {
       <div className="shell-layout">
         <div className="shell-main-column">
           <div className="shell-tab-row">
-            <span className="shell-tab-button is-active">
+            <button
+              type="button"
+              className={`shell-tab-button${activeTab === "device" ? " is-active" : ""}`}
+              onClick={() => setSearchParams({}, { replace: true })}
+            >
               <s-icon type="upload" size="small" />
               Upload from device
-            </span>
-            {instagramConnected ? (
-              <a href="/app/instagram/media" className="shell-tab-button">
-                <s-icon type="camera" size="small" />
-                Import from Instagram
-              </a>
-            ) : (
-              <a
-                href={instagramAuthUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="shell-tab-button"
-              >
-                <s-icon type="camera" size="small" />
-                Import from Instagram
-              </a>
-            )}
+            </button>
+            <button
+              type="button"
+              className={`shell-tab-button${activeTab === "instagram" ? " is-active" : ""}`}
+              onClick={() => setSearchParams({ tab: "instagram" }, { replace: true })}
+            >
+              <s-icon type="camera" size="small" />
+              Import from Instagram
+            </button>
           </div>
 
+          {activeTab === "instagram" ? (
+            <div className="shell-card">
+              <InstagramImportPanel
+                instagramAuthUrl={instagramAuthUrl}
+                onImported={() => revalidator.revalidate()}
+              />
+            </div>
+          ) : (
           <div className="shell-card">
             {error && (
               <div
@@ -399,6 +559,7 @@ export default function Upload() {
               </div>
             </div>
           </div>
+          )}
 
           <div className="shell-card" style={{ marginTop: 24 }}>
             <div className="shell-section-header">
