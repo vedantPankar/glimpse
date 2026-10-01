@@ -1,14 +1,18 @@
 {% comment %}
   Renders the videos in the carousel the merchant picks (via a metaobject
-  picker synced from the Video Reels app), in one of four merchant-selectable
-  visual styles: row (horizontal scroll), stack (overlapping fanned cards),
-  bubbles (Stories-style circles that open a lightbox), or spotlight (one
-  large video at a time with crossfade + dot navigation). If no carousel is
-  picked, or it has no eligible videos, nothing renders.
+  picker synced from the Video Reels app), in one of two merchant-selectable
+  visual styles: row (horizontal scroll) or stack (overlapping fanned
+  cards). ("bubbles" and "spotlight" rendering is still supported here for
+  any carousel that was already set to one of those styles before they were
+  removed from the picker, but they're no longer selectable.) If no
+  carousel is picked, or it has no eligible videos, nothing renders.
 
-  Tracks a "view" event when a video starts playing, and a "click" event
-  (plus a short-lived attribution cookie for add-to-cart/order tracking)
-  right before navigating to the product page.
+  Clicking any tile opens a shoppable lightbox: the video, the linked
+  product's live price (fetched from /products/{handle}.js), an Add to
+  cart button, and a link to the product page. Tracks a "view" event when
+  the lightbox/tile video starts playing, a "click" event (plus a
+  short-lived attribution cookie for add-to-cart/order tracking) when a
+  tile or the product link is used.
 {% endcomment %}
 {% render 'reels-cookie' %}
 {% assign reels_style_override = block.settings.style %}
@@ -36,7 +40,6 @@
 </div>
 
 <div class="video-reels-lightbox" id="video-reels-lightbox-{{ block.id }}" hidden>
-  <button type="button" class="video-reels-lightbox-close" aria-label="Close">&times;</button>
   <div class="video-reels-lightbox-content"></div>
 </div>
 
@@ -273,7 +276,7 @@
     display: flex;
   }
 
-  /* Lightbox (used by bubbles style) */
+  /* Lightbox (shoppable video modal, opened from any tile) */
   .video-reels-lightbox {
     position: fixed;
     inset: 0;
@@ -292,30 +295,102 @@
     display: none;
   }
   .video-reels-lightbox-content {
+    position: relative;
+    width: 360px;
     max-width: 90vw;
     max-height: 90vh;
     text-align: center;
   }
   .video-reels-lightbox-content video {
-    max-width: 100%;
+    width: 100%;
     max-height: 80vh;
     border-radius: 12px;
+    display: block;
+    background: #000;
   }
-  .video-reels-lightbox-content .video-reels-tile-title {
-    color: #fff;
-    animation: none;
-    opacity: 1;
-  }
-  .video-reels-lightbox-close {
+  .video-reels-lightbox-close,
+  .video-reels-lightbox-mute {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
+    top: 14px;
+    background: rgba(0, 0, 0, 0.5);
     border: none;
     color: #fff;
-    font-size: 32px;
     cursor: pointer;
     line-height: 1;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-reels-lightbox-close {
+    right: 14px;
+    font-size: 22px;
+  }
+  .video-reels-lightbox-mute {
+    right: 58px;
+    font-size: 16px;
+  }
+  .video-reels-lightbox-product {
+    margin-top: 12px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: left;
+  }
+  .video-reels-lightbox-product-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .video-reels-lightbox-product-info img {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .video-reels-lightbox-product-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .video-reels-lightbox-product-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+  }
+  .video-reels-lightbox-product-name:hover {
+    text-decoration: underline;
+  }
+  .video-reels-lightbox-product-price {
+    font-size: 14px;
+    color: #444;
+    margin-top: 2px;
+  }
+  .video-reels-lightbox-addtocart {
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    background: #111;
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .video-reels-lightbox-addtocart:hover {
+    background: #333;
+  }
+  .video-reels-lightbox-addtocart:disabled {
+    opacity: 0.7;
+    cursor: default;
   }
 </style>
 
@@ -328,6 +403,12 @@
     var dotsContainer = document.getElementById("video-reels-dots-{{ block.id }}");
     var lightbox = document.getElementById("video-reels-lightbox-{{ block.id }}");
     if (!wrapper || !track) return;
+
+    if (lightbox) {
+      lightbox.addEventListener("click", function (event) {
+        if (event.target === lightbox) closeLightbox();
+      });
+    }
 
     function trackReelsEvent(videoId, eventType) {
       var payload = JSON.stringify({
@@ -411,11 +492,8 @@
       );
 
       thumb.addEventListener("click", function () {
-        if (el.paused) {
-          el.play();
-        } else {
-          el.pause();
-        }
+        if (video.id) trackReelsEvent(video.id, "click");
+        openLightbox(video);
       });
 
       var badge = buildBadge(video);
@@ -441,6 +519,95 @@
       });
     }
 
+    function formatMoney(cents) {
+      return "$" + (cents / 100).toFixed(2);
+    }
+
+    function buildLightboxProductCard(video) {
+      if (!video.productHandle) return null;
+
+      var card = document.createElement("div");
+      card.className = "video-reels-lightbox-product";
+
+      var info = document.createElement("div");
+      info.className = "video-reels-lightbox-product-info";
+
+      if (video.productImageUrl) {
+        var img = document.createElement("img");
+        img.src = video.productImageUrl;
+        img.alt = "";
+        info.appendChild(img);
+      }
+
+      var text = document.createElement("div");
+      text.className = "video-reels-lightbox-product-text";
+
+      var nameLink = document.createElement("a");
+      nameLink.href = "/products/" + video.productHandle;
+      nameLink.className = "video-reels-lightbox-product-name";
+      nameLink.textContent = (video.productTitle || "View product") + " ↗";
+      nameLink.addEventListener("click", function () {
+        trackClickAndAttribute(video);
+      });
+
+      var priceEl = document.createElement("div");
+      priceEl.className = "video-reels-lightbox-product-price";
+
+      text.appendChild(nameLink);
+      text.appendChild(priceEl);
+      info.appendChild(text);
+      card.appendChild(info);
+
+      var addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "video-reels-lightbox-addtocart";
+      addBtn.textContent = "Add to cart";
+      addBtn.disabled = true;
+      card.appendChild(addBtn);
+
+      fetch("/products/" + video.productHandle + ".js")
+        .then(function (res) { return res.json(); })
+        .then(function (product) {
+          var variant = product.variants && product.variants[0];
+          if (!variant) return;
+          priceEl.textContent = formatMoney(variant.price);
+          addBtn.disabled = false;
+
+          addBtn.addEventListener("click", function () {
+            addBtn.disabled = true;
+            addBtn.textContent = "Adding…";
+            window.__reelsCookie.set(video.id);
+            fetch("/cart/add.js", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ items: [{ id: variant.id, quantity: 1 }] }),
+            })
+              .then(function (res) {
+                if (!res.ok) throw new Error("add to cart failed");
+                addBtn.textContent = "Added ✓";
+                setTimeout(function () {
+                  addBtn.textContent = "Add to cart";
+                  addBtn.disabled = false;
+                }, 2000);
+              })
+              .catch(function () {
+                addBtn.textContent = "Try again";
+                addBtn.disabled = false;
+              });
+          });
+        })
+        .catch(function () {
+          addBtn.textContent = "View product";
+          addBtn.disabled = false;
+          addBtn.addEventListener("click", function () {
+            trackClickAndAttribute(video);
+            window.location.href = "/products/" + video.productHandle;
+          });
+        });
+
+      return card;
+    }
+
     function openLightbox(video) {
       if (!lightbox) return;
       var content = lightbox.querySelector(".video-reels-lightbox-content");
@@ -449,12 +616,33 @@
       var el = document.createElement("video");
       el.src = video.url;
       if (video.thumbnailUrl) el.poster = video.thumbnailUrl;
-      el.controls = true;
+      el.muted = true;
+      el.loop = true;
+      el.autoplay = true;
       el.playsInline = true;
       content.appendChild(el);
 
-      var titleLink = buildTitleLink(video);
-      if (titleLink) content.appendChild(titleLink);
+      var muteBtn = document.createElement("button");
+      muteBtn.type = "button";
+      muteBtn.className = "video-reels-lightbox-mute";
+      muteBtn.setAttribute("aria-label", "Toggle sound");
+      muteBtn.textContent = "🔇";
+      muteBtn.addEventListener("click", function () {
+        el.muted = !el.muted;
+        muteBtn.textContent = el.muted ? "🔇" : "🔊";
+      });
+      content.appendChild(muteBtn);
+
+      var closeBtn = document.createElement("button");
+      closeBtn.type = "button";
+      closeBtn.className = "video-reels-lightbox-close";
+      closeBtn.setAttribute("aria-label", "Close");
+      closeBtn.innerHTML = "&times;";
+      closeBtn.addEventListener("click", closeLightbox);
+      content.appendChild(closeBtn);
+
+      var productCard = buildLightboxProductCard(video);
+      if (productCard) content.appendChild(productCard);
 
       lightbox.hidden = false;
       requestAnimationFrame(function () {
@@ -508,13 +696,6 @@
           track.scrollBy({ left: direction * track.clientWidth * 0.6, behavior: "smooth" });
         });
       });
-
-      if (lightbox) {
-        lightbox.querySelector(".video-reels-lightbox-close").addEventListener("click", closeLightbox);
-        lightbox.addEventListener("click", function (event) {
-          if (event.target === lightbox) closeLightbox();
-        });
-      }
     }
 
     function renderSpotlight(videos) {
@@ -609,9 +790,7 @@
       "options": [
         { "value": "", "label": "Use app setting" },
         { "value": "row", "label": "Row (horizontal scroll)" },
-        { "value": "stack", "label": "Stack (overlapping cards)" },
-        { "value": "bubbles", "label": "Bubbles (Stories-style, tap to play)" },
-        { "value": "spotlight", "label": "Spotlight (one video at a time)" }
+        { "value": "stack", "label": "Stack (overlapping cards)" }
       ]
     }
   ]

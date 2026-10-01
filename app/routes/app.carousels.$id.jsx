@@ -16,9 +16,12 @@ import { getThemeEditorUrl } from "../utils/themeEditor";
 const STYLE_OPTIONS = [
   { value: "row", label: "Row (horizontal scroll)" },
   { value: "stack", label: "Stack (overlapping cards)" },
-  { value: "bubbles", label: "Bubbles (Stories-style, tap to play)" },
-  { value: "spotlight", label: "Spotlight (one video at a time)" },
 ];
+
+const LEGACY_STYLE_LABELS = {
+  bubbles: "Bubbles (legacy, no longer selectable for new carousels)",
+  spotlight: "Spotlight (legacy, no longer selectable for new carousels)",
+};
 
 export async function loader({ request, params }) {
   const { session } = await authenticate.admin(request);
@@ -115,6 +118,13 @@ export default function CarouselDetail() {
   const reorderFetcher = useFetcher();
   const styleFetcher = useFetcher();
   const [previewStyle, setPreviewStyle] = useState(carousel.style);
+  const styleOptions =
+    LEGACY_STYLE_LABELS[carousel.style] && !STYLE_OPTIONS.some((o) => o.value === carousel.style)
+      ? [
+          ...STYLE_OPTIONS,
+          { value: carousel.style, label: LEGACY_STYLE_LABELS[carousel.style] },
+        ]
+      : STYLE_OPTIONS;
 
   const handleStyleChange = (event) => {
     const style = event.target.value;
@@ -206,7 +216,7 @@ export default function CarouselDetail() {
               onChange={handleStyleChange}
               style={{ marginBottom: 12 }}
             >
-              {STYLE_OPTIONS.map((option) => (
+              {styleOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
