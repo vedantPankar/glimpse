@@ -3,6 +3,7 @@ import {
   getCarouselWithEligibleVideos,
   getCarouselByIdWithEligibleVideos,
 } from "../models/carousel.server";
+import { getVideoStats } from "../models/analytics.server";
 
 function jsonResponse(payload) {
   return new Response(JSON.stringify(payload), {
@@ -38,6 +39,8 @@ export async function loader({ request }) {
     return jsonResponse({ style: "row", videos: [] });
   }
 
+  const stats = await getVideoStats(session.shop);
+
   const videos = carousel.videos
     .filter((cv) => cv.video.products.length > 0)
     .map((cv) => {
@@ -50,6 +53,7 @@ export async function loader({ request }) {
         productTitle: product.productTitle,
         productHandle: product.productHandle,
         productImageUrl: product.productImageUrl,
+        views: stats[cv.video.id]?.views || 0,
       };
     });
 
