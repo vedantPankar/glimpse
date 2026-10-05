@@ -1,6 +1,6 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "07f0d5132fb240f34caa60e07584c084"
+client_id = "05a620dc27d9c6f1f33336b5053737e2"
 name = "video-carousel-app"
 application_url = "https://mobireel.mobidrag.com"
 embedded = true
@@ -60,6 +60,10 @@ api_version = "2026-10"
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
   topics = [ "app/scopes_update" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
   # orders/create webhook: NOT enabled yet. It requires Shopify's Protected
   # Customer Data approval (Partners dashboard > app > API access) before
