@@ -2,7 +2,7 @@
 
 client_id = "07f0d5132fb240f34caa60e07584c084"
 name = "video-carousel-app"
-application_url = "https://video-reels-app.onrender.com"
+application_url = "https://mobireel.mobidrag.com"
 embedded = true
 
 [access_scopes]
@@ -71,10 +71,10 @@ api_version = "2026-10"
   # are already built and ready to go once both are in place.
 
 [auth]
-redirect_urls = [ "https://video-reels-app.onrender.com/auth/callback" ]
+redirect_urls = [ "https://mobireel.mobidrag.com/auth/callback" ]
 
 [app_proxy]
-url = "https://video-reels-app.onrender.com/apps/reels"
+url = "https://mobireel.mobidrag.com/apps/reels"
 subpath = "reels"
 prefix = "apps"
 
