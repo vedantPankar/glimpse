@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Link, useFetcher, useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
+import { toSafariSafeVideoUrl } from "../utils/cloudinaryUrl";
 import { createVideo, listVideos } from "../models/video.server";
 import { getInstagramConnection } from "../models/instagramConnection.server";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
@@ -161,7 +162,7 @@ export default function Upload() {
 
         const createData = new FormData();
         createData.append("cloudinaryId", uploaded.public_id);
-        createData.append("url", uploaded.secure_url);
+        createData.append("url", toSafariSafeVideoUrl(uploaded.secure_url));
         createData.append("thumbnailUrl", thumbnailUrl);
         if (uploaded.duration) {
           createData.append("duration", String(uploaded.duration));

@@ -428,6 +428,7 @@
     width: 360px;
     max-width: 90vw;
     max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
     margin: auto;
     display: flex;
     flex-direction: column;
@@ -646,6 +647,10 @@
       el.loop = true;
       el.autoplay = true;
       el.playsInline = true;
+      el.setAttribute("playsinline", "");
+      el.setAttribute("webkit-playsinline", "");
+      el.setAttribute("muted", "");
+      el.preload = "metadata";
       thumb.appendChild(el);
 
       el.addEventListener(
@@ -712,6 +717,10 @@
         el.muted = true;
         el.loop = true;
         el.playsInline = true;
+      el.setAttribute("playsinline", "");
+      el.setAttribute("webkit-playsinline", "");
+      el.setAttribute("muted", "");
+      el.preload = "metadata";
         thumb.appendChild(el);
 
         var views = document.createElement("div");
@@ -928,6 +937,10 @@
       el.loop = true;
       el.autoplay = true;
       el.playsInline = true;
+      el.setAttribute("playsinline", "");
+      el.setAttribute("webkit-playsinline", "");
+      el.setAttribute("muted", "");
+      el.preload = "metadata";
       content.appendChild(el);
 
       var muteBtn = document.createElement("button");

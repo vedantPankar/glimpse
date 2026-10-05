@@ -1,5 +1,6 @@
 import { redirect, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
+import { toSafariSafeVideoUrl } from "../utils/cloudinaryUrl";
 import {
   getInstagramConnection,
   deleteInstagramConnection,
@@ -55,7 +56,7 @@ export async function action({ request }) {
       return createVideo({
         shop: session.shop,
         cloudinaryId: uploaded.public_id,
-        url: uploaded.secure_url,
+        url: toSafariSafeVideoUrl(uploaded.secure_url),
         thumbnailUrl: item.thumbnail_url || null,
         title: item.caption ? String(item.caption).slice(0, 200) : null,
         duration: uploaded.duration ?? null,
