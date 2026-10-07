@@ -9,6 +9,7 @@ import { fetchInstagramVideoMedia } from "../utils/instagram.server";
 import { uploadRemoteVideo } from "../utils/cloudinary.server";
 import { createVideo } from "../models/video.server";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
+import { signInstagramState } from "../utils/instagramState.server";
 
 export async function loader({ request }) {
   const { session } = await authenticate.admin(request);
@@ -21,7 +22,7 @@ export async function loader({ request }) {
       appUrl,
     ).toString();
     const instagramAuthUrl = getInstagramAuthorizationUrl(
-      session.shop,
+      signInstagramState(session.shop),
       redirectUri,
     );
     return { connected: false, media: [], instagramAuthUrl };

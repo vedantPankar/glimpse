@@ -5,6 +5,7 @@ import { toSafariSafeVideoUrl } from "../utils/cloudinaryUrl";
 import { createVideo, listVideos } from "../models/video.server";
 import { getInstagramConnection } from "../models/instagramConnection.server";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
+import { signInstagramState } from "../utils/instagramState.server";
 import {
   formatDuration,
   formatDateTime,
@@ -18,7 +19,7 @@ export async function loader({ request }) {
   const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
   const redirectUri = new URL("/auth/instagram/callback", appUrl).toString();
   const instagramAuthUrl = getInstagramAuthorizationUrl(
-    session.shop,
+    signInstagramState(session.shop),
     redirectUri,
   );
 
