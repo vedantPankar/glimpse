@@ -16,7 +16,7 @@ export default function Auth() {
       <s-page>
         <s-section heading="Open from Shopify">
           <s-paragraph>
-            Install and open Video Reels from your Shopify admin or the Shopify
+            Install and open MobiReel from your Shopify admin or the Shopify
             App Store.
           </s-paragraph>
         </s-section>

@@ -301,7 +301,7 @@ export default function ReelsIndex() {
     <div>
       <div className="shell-page-header">
         <div>
-          <h1 className="shell-greeting-title">Video reels</h1>
+          <h1 className="shell-greeting-title">MobiReel</h1>
           <p className="shell-greeting-subtitle">
             Manage your uploaded videos and view their performance.
           </p>

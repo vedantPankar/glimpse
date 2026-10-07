@@ -1,18 +1,18 @@
 {% comment %}
-  Renders any videos attached to this product via the Video Reels app.
+  Renders any videos attached to this product via the MobiReel app.
   Tracks a "view" event the first time each video starts playing.
 {% endcomment %}
 {% assign reel_product_id = block.settings.product.id %}
-<div id="video-reels-{{ reel_product_id }}" class="video-reels-block"></div>
+<div id="mobireel-{{ reel_product_id }}" class="mobireel-block"></div>
 
 <script>
   (function () {
     var productId = {{ reel_product_id | json }};
     var pageType = {{ request.page_type | json }};
-    var container = document.getElementById("video-reels-" + productId);
+    var container = document.getElementById("mobireel-" + productId);
     if (!productId || !container) return;
 
-    fetch("/apps/reels/product/" + productId)
+    fetch("/apps/mobireel/product/" + productId)
       .then(function (res) { return res.json(); })
       .then(function (videos) {
         videos.forEach(function (video) {
@@ -31,7 +31,7 @@
                 eventType: "view",
                 pageType: pageType,
               });
-              fetch("/apps/reels/track", {
+              fetch("/apps/mobireel/track", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: payload,
@@ -51,7 +51,7 @@
 
 {% schema %}
 {
-  "name": "Video reels",
+  "name": "MobiReel",
   "target": "section",
   "settings": [
     { "type": "product", "id": "product", "label": "Product", "autofill": true }

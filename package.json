@@ -1,5 +1,5 @@
 {
-  "name": "video-carousel-app",
+  "name": "mobireel",
   "private": true,
   "scripts": {
     "build": "react-router build",

@@ -15,7 +15,7 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>Video Reels</h1>
+        <h1 className={styles.heading}>MobiReel</h1>
         <p className={styles.text}>
           Add shoppable video reels and carousels to your Shopify store.
         </p>

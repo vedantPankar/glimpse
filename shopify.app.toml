@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "05a620dc27d9c6f1f33336b5053737e2"
-name = "video-carousel-app"
+name = "MobiReel"
 application_url = "https://mobireel.mobidrag.com"
 embedded = true
 
@@ -9,19 +9,19 @@ embedded = true
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products,write_metaobjects,write_metaobject_definitions"
 
-[metaobjects.app.video_carousel]
-name = "Video Carousel"
-description = "A named, ordered set of reel videos created in the Video Reels app"
+[metaobjects.app.mobireel_carousel]
+name = "MobiReel Carousel"
+description = "A named, ordered set of reel videos created in the MobiReel app"
 
-  [metaobjects.app.video_carousel.access]
+  [metaobjects.app.mobireel_carousel.access]
   admin = "merchant_read_write"
 
-[metaobjects.app.video_carousel.fields.name]
+[metaobjects.app.mobireel_carousel.fields.name]
 name = "Name"
 type = "single_line_text_field"
 required = true
 
-[metaobjects.app.video_carousel.fields.carousel_id]
+[metaobjects.app.mobireel_carousel.fields.carousel_id]
 name = "Carousel ID"
 type = "single_line_text_field"
 required = true
@@ -54,8 +54,8 @@ api_version = "2026-10"
 redirect_urls = [ "https://mobireel.mobidrag.com/auth/callback" ]
 
 [app_proxy]
-url = "https://mobireel.mobidrag.com/apps/reels"
-subpath = "reels"
+url = "https://mobireel.mobidrag.com/apps/mobireel"
+subpath = "mobireel"
 prefix = "apps"
 
 [build]

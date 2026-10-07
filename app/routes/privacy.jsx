@@ -1,4 +1,4 @@
-export const meta = () => [{ title: "Privacy Policy – Video Reels" }];
+export const meta = () => [{ title: "Privacy Policy – MobiReel" }];
 
 const CONTACT = "info@mobidrag.com";
 
@@ -14,10 +14,10 @@ export default function Privacy() {
         color: "#1a1a1a",
       }}
     >
-      <h1>Privacy Policy – Video Reels</h1>
+      <h1>Privacy Policy – MobiReel</h1>
       <p>Last updated: October 2026</p>
       <p>
-        Video Reels (&quot;the app&quot;) lets Shopify merchants show shoppable
+        MobiReel (&quot;the app&quot;) lets Shopify merchants show shoppable
         videos on their storefront. This policy explains what data the app
         handles and why.
       </p>

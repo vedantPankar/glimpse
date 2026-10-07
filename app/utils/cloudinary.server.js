@@ -21,7 +21,7 @@ export async function destroyCloudinaryAsset(publicId) {
 export async function uploadRemoteVideo(remoteUrl) {
   return cloudinary.uploader.upload(remoteUrl, {
     resource_type: "video",
-    folder: "video-reels",
+    folder: "mobireel",
   });
 }
 

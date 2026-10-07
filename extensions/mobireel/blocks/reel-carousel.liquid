@@ -1,6 +1,6 @@
 {% comment %}
   Renders the videos in the carousel the merchant picks (via a metaobject
-  picker synced from the Video Reels app), in one of two merchant-selectable
+  picker synced from the MobiReel app), in one of two merchant-selectable
   visual styles: row (horizontal scroll) or stack (overlapping fanned
   cards). ("bubbles" and "spotlight" rendering is still supported here for
   any carousel that was already set to one of those styles before they were
@@ -17,40 +17,40 @@
 {% render 'reels-cookie' %}
 {% assign reels_style_override = block.settings.style %}
 <div
-  class="video-reels-wrapper"
-  id="video-reels-wrapper-{{ block.id }}"
+  class="mobireel-wrapper"
+  id="mobireel-wrapper-{{ block.id }}"
 >
   <button
     type="button"
-    class="video-reels-nav video-reels-nav--prev"
+    class="mobireel-nav mobireel-nav--prev"
     aria-label="Previous"
     data-direction="-1"
   >&#8249;</button>
 
-  <div class="video-reels-track" id="video-reels-track-{{ block.id }}"></div>
+  <div class="mobireel-track" id="mobireel-track-{{ block.id }}"></div>
 
   <button
     type="button"
-    class="video-reels-nav video-reels-nav--next"
+    class="mobireel-nav mobireel-nav--next"
     aria-label="Next"
     data-direction="1"
   >&#8250;</button>
 
-  <div class="video-reels-dots" id="video-reels-dots-{{ block.id }}"></div>
+  <div class="mobireel-dots" id="mobireel-dots-{{ block.id }}"></div>
 </div>
 
-<div class="video-reels-lightbox" id="video-reels-lightbox-{{ block.id }}" hidden>
-  <div class="video-reels-lightbox-content"></div>
+<div class="mobireel-lightbox" id="mobireel-lightbox-{{ block.id }}" hidden>
+  <div class="mobireel-lightbox-content"></div>
 </div>
 
 <style>
-  .video-reels-wrapper {
+  .mobireel-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
     position: relative;
   }
-  .video-reels-track {
+  .mobireel-track {
     display: flex;
     gap: 20px;
     overflow-x: auto;
@@ -59,7 +59,7 @@
     padding: 8px 4px;
     flex: 1;
   }
-  .video-reels-nav {
+  .mobireel-nav {
     flex: 0 0 auto;
     border: none;
     background: rgba(0, 0, 0, 0.06);
@@ -71,11 +71,11 @@
     line-height: 1;
     transition: background 0.2s ease, transform 0.2s ease;
   }
-  .video-reels-nav:hover {
+  .mobireel-nav:hover {
     background: rgba(0, 0, 0, 0.12);
     transform: scale(1.08);
   }
-  .video-reels-dots {
+  .mobireel-dots {
     display: none;
     gap: 8px;
     justify-content: center;
@@ -84,7 +84,7 @@
     left: 0;
     right: 0;
   }
-  .video-reels-dot {
+  .mobireel-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -94,14 +94,14 @@
     padding: 0;
     transition: background 0.2s ease, transform 0.2s ease;
   }
-  .video-reels-dot.is-active {
+  .mobireel-dot.is-active {
     background: #111;
     transform: scale(1.3);
   }
-  .video-reels-tile {
+  .mobireel-tile {
     text-align: center;
   }
-  .video-reels-tile-title {
+  .mobireel-tile-title {
     display: block;
     margin-top: 8px;
     font-size: 13px;
@@ -111,25 +111,25 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     opacity: 0;
-    animation: video-reels-fade-in 0.4s ease forwards;
+    animation: mobireel-fade-in 0.4s ease forwards;
   }
-  .video-reels-tile-caption {
+  .mobireel-tile-caption {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 8px;
     text-align: left;
     opacity: 0;
-    animation: video-reels-fade-in 0.4s ease forwards;
+    animation: mobireel-fade-in 0.4s ease forwards;
   }
-  .video-reels-tile-caption-img {
+  .mobireel-tile-caption-img {
     width: 32px;
     height: 32px;
     border-radius: 6px;
     object-fit: cover;
     flex-shrink: 0;
   }
-  .video-reels-tile-caption-name {
+  .mobireel-tile-caption-name {
     font-size: 13px;
     font-weight: 500;
     color: inherit;
@@ -139,10 +139,10 @@
     white-space: nowrap;
     min-width: 0;
   }
-  .video-reels-tile-caption-name:hover {
+  .mobireel-tile-caption-name:hover {
     text-decoration: underline;
   }
-  .video-reels-tile-product-badge {
+  .mobireel-tile-product-badge {
     position: absolute;
     bottom: 8px;
     right: 8px;
@@ -155,33 +155,33 @@
     background: #fff;
     cursor: pointer;
   }
-  .video-reels-tile-product-badge img {
+  .mobireel-tile-product-badge img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
-  @keyframes video-reels-fade-in {
+  @keyframes mobireel-fade-in {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   /* Row style — fixed pixel sizing so every tile is guaranteed identical,
      regardless of each video's own metadata/loading timing. */
-  .video-reels-style-row .video-reels-tile {
+  .mobireel-style-row .mobireel-tile {
     scroll-snap-align: start;
     flex: 0 0 180px;
     width: 180px;
     opacity: 0;
-    animation: video-reels-fade-in 0.4s ease forwards;
+    animation: mobireel-fade-in 0.4s ease forwards;
   }
   @media (max-width: 600px) {
-    .video-reels-style-row .video-reels-tile {
+    .mobireel-style-row .mobireel-tile {
       flex: 0 0 140px;
       width: 140px;
     }
   }
-  .video-reels-style-row .video-reels-tile-thumb {
+  .mobireel-style-row .mobireel-tile-thumb {
     display: block;
     box-sizing: border-box;
     position: relative;
@@ -198,17 +198,17 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   @media (max-width: 600px) {
-    .video-reels-style-row .video-reels-tile-thumb {
+    .mobireel-style-row .mobireel-tile-thumb {
       width: 140px;
       height: 249px;
     }
   }
-  .video-reels-style-row .video-reels-tile-thumb:hover {
+  .mobireel-style-row .mobireel-tile-thumb:hover {
     transform: scale(1.04);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   }
-  .video-reels-style-row .video-reels-tile-thumb video,
-  .video-reels-style-spotlight .video-reels-tile-thumb video {
+  .mobireel-style-row .mobireel-tile-thumb video,
+  .mobireel-style-spotlight .mobireel-tile-thumb video {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -216,17 +216,17 @@
   }
 
   /* Stack style: center-focused coverflow with blurred peeking neighbors */
-  .video-reels-style-stack .video-reels-track {
+  .mobireel-style-stack .mobireel-track {
     overflow-x: auto;
     scroll-snap-type: none;
     scrollbar-width: none;
     gap: 16px;
     padding: 8px calc(50% - 115px);
   }
-  .video-reels-style-stack .video-reels-track::-webkit-scrollbar {
+  .mobireel-style-stack .mobireel-track::-webkit-scrollbar {
     display: none;
   }
-  .video-reels-style-stack .video-reels-tile {
+  .mobireel-style-stack .mobireel-tile {
     flex: 0 0 230px;
     width: 230px;
     opacity: 0.3;
@@ -234,17 +234,17 @@
     transform: scale(0.82);
     transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
   }
-  .video-reels-style-stack .video-reels-tile.is-adjacent {
+  .mobireel-style-stack .mobireel-tile.is-adjacent {
     opacity: 0.6;
     filter: blur(1px) grayscale(25%);
     transform: scale(0.9);
   }
-  .video-reels-style-stack .video-reels-tile.is-active {
+  .mobireel-style-stack .mobireel-tile.is-active {
     opacity: 1;
     filter: none;
     transform: scale(1);
   }
-  .video-reels-style-stack .video-reels-tile-thumb {
+  .mobireel-style-stack .mobireel-tile-thumb {
     position: relative;
     width: 100%;
     aspect-ratio: 9 / 16;
@@ -254,13 +254,13 @@
     background: #111;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   }
-  .video-reels-style-stack .video-reels-tile-thumb video {
+  .mobireel-style-stack .mobireel-tile-thumb video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
-  .video-reels-stack-views {
+  .mobireel-stack-views {
     position: absolute;
     top: 10px;
     left: 10px;
@@ -274,7 +274,7 @@
     padding: 4px 8px;
     border-radius: 6px;
   }
-  .video-reels-stack-mute {
+  .mobireel-stack-mute {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -290,7 +290,7 @@
     align-items: center;
     justify-content: center;
   }
-  .video-reels-stack-caption {
+  .mobireel-stack-caption {
     margin-top: 10px;
     display: flex;
     align-items: center;
@@ -300,21 +300,21 @@
     opacity: 0;
     transition: opacity 0.3s ease;
   }
-  .video-reels-style-stack .video-reels-tile.is-active .video-reels-stack-caption {
+  .mobireel-style-stack .mobireel-tile.is-active .mobireel-stack-caption {
     opacity: 1;
   }
-  .video-reels-stack-caption-img {
+  .mobireel-stack-caption-img {
     width: 40px;
     height: 40px;
     border-radius: 8px;
     object-fit: cover;
     flex-shrink: 0;
   }
-  .video-reels-stack-caption-text {
+  .mobireel-stack-caption-text {
     min-width: 0;
     max-width: 170px;
   }
-  .video-reels-stack-name {
+  .mobireel-stack-name {
     display: block;
     font-size: 15px;
     font-weight: 600;
@@ -324,10 +324,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .video-reels-stack-name:hover {
+  .mobireel-stack-name:hover {
     text-decoration: underline;
   }
-  .video-reels-stack-price {
+  .mobireel-stack-price {
     font-size: 14px;
     color: #555;
     margin-top: 2px;
@@ -335,13 +335,13 @@
   }
 
   /* Bubbles style */
-  .video-reels-style-bubbles .video-reels-tile {
+  .mobireel-style-bubbles .mobireel-tile {
     flex: 0 0 auto;
     width: 84px;
     opacity: 0;
-    animation: video-reels-fade-in 0.4s ease forwards;
+    animation: mobireel-fade-in 0.4s ease forwards;
   }
-  .video-reels-style-bubbles .video-reels-tile-thumb {
+  .mobireel-style-bubbles .mobireel-tile-thumb {
     width: 76px;
     height: 76px;
     border-radius: 50%;
@@ -352,10 +352,10 @@
     background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
     transition: transform 0.25s ease;
   }
-  .video-reels-style-bubbles .video-reels-tile-thumb:hover {
+  .mobireel-style-bubbles .mobireel-tile-thumb:hover {
     transform: scale(1.08);
   }
-  .video-reels-style-bubbles .video-reels-tile-thumb img {
+  .mobireel-style-bubbles .mobireel-tile-thumb img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
@@ -365,13 +365,13 @@
   }
 
   /* Spotlight style */
-  .video-reels-style-spotlight .video-reels-track {
+  .mobireel-style-spotlight .mobireel-track {
     position: relative;
     height: 420px;
     justify-content: center;
     overflow: hidden;
   }
-  .video-reels-style-spotlight .video-reels-tile {
+  .mobireel-style-spotlight .mobireel-tile {
     position: absolute;
     inset: 0;
     margin: auto;
@@ -382,12 +382,12 @@
     transition: opacity 0.5s ease, transform 0.5s ease;
     animation: none;
   }
-  .video-reels-style-spotlight .video-reels-tile.is-active {
+  .mobireel-style-spotlight .mobireel-tile.is-active {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
   }
-  .video-reels-style-spotlight .video-reels-tile-thumb {
+  .mobireel-style-spotlight .mobireel-tile-thumb {
     position: relative;
     width: 100%;
     height: 100%;
@@ -398,12 +398,12 @@
     padding: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   }
-  .video-reels-style-spotlight .video-reels-dots {
+  .mobireel-style-spotlight .mobireel-dots {
     display: flex;
   }
 
   /* Lightbox (shoppable video modal, opened from any tile) */
-  .video-reels-lightbox {
+  .mobireel-lightbox {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
@@ -417,13 +417,13 @@
     padding: 24px 0;
     box-sizing: border-box;
   }
-  .video-reels-lightbox.is-open {
+  .mobireel-lightbox.is-open {
     opacity: 1;
   }
-  .video-reels-lightbox[hidden] {
+  .mobireel-lightbox[hidden] {
     display: none;
   }
-  .video-reels-lightbox-content {
+  .mobireel-lightbox-content {
     position: relative;
     width: 360px;
     max-width: 90vw;
@@ -434,7 +434,7 @@
     flex-direction: column;
     text-align: center;
   }
-  .video-reels-lightbox-content video {
+  .mobireel-lightbox-content video {
     width: 100%;
     flex: 1 1 auto;
     min-height: 0;
@@ -444,8 +444,8 @@
     background: #000;
     object-fit: cover;
   }
-  .video-reels-lightbox-close,
-  .video-reels-lightbox-mute {
+  .mobireel-lightbox-close,
+  .mobireel-lightbox-mute {
     position: absolute;
     top: 14px;
     background: rgba(0, 0, 0, 0.5);
@@ -460,15 +460,15 @@
     align-items: center;
     justify-content: center;
   }
-  .video-reels-lightbox-close {
+  .mobireel-lightbox-close {
     right: 14px;
     font-size: 22px;
   }
-  .video-reels-lightbox-mute {
+  .mobireel-lightbox-mute {
     right: 58px;
     font-size: 16px;
   }
-  .video-reels-lightbox-product {
+  .mobireel-lightbox-product {
     margin-top: 12px;
     background: #fff;
     border-radius: 12px;
@@ -476,23 +476,23 @@
     text-align: left;
     flex-shrink: 0;
   }
-  .video-reels-lightbox-product-info {
+  .mobireel-lightbox-product-info {
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  .video-reels-lightbox-product-info img {
+  .mobireel-lightbox-product-info img {
     width: 44px;
     height: 44px;
     border-radius: 8px;
     object-fit: cover;
     flex-shrink: 0;
   }
-  .video-reels-lightbox-product-text {
+  .mobireel-lightbox-product-text {
     flex: 1;
     min-width: 0;
   }
-  .video-reels-lightbox-product-name {
+  .mobireel-lightbox-product-name {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -501,15 +501,15 @@
     color: #111;
     text-decoration: none;
   }
-  .video-reels-lightbox-product-name:hover {
+  .mobireel-lightbox-product-name:hover {
     text-decoration: underline;
   }
-  .video-reels-lightbox-product-price {
+  .mobireel-lightbox-product-price {
     font-size: 14px;
     color: #444;
     margin-top: 2px;
   }
-  .video-reels-lightbox-addtocart {
+  .mobireel-lightbox-addtocart {
     margin-top: 10px;
     width: 100%;
     border: none;
@@ -522,10 +522,10 @@
     cursor: pointer;
     transition: background 0.2s ease;
   }
-  .video-reels-lightbox-addtocart:hover {
+  .mobireel-lightbox-addtocart:hover {
     background: #333;
   }
-  .video-reels-lightbox-addtocart:disabled {
+  .mobireel-lightbox-addtocart:disabled {
     opacity: 0.7;
     cursor: default;
   }
@@ -535,10 +535,10 @@
   (function () {
     var styleOverride = {{ reels_style_override | default: "" | json }};
     var pageType = {{ request.page_type | json }};
-    var wrapper = document.getElementById("video-reels-wrapper-{{ block.id }}");
-    var track = document.getElementById("video-reels-track-{{ block.id }}");
-    var dotsContainer = document.getElementById("video-reels-dots-{{ block.id }}");
-    var lightbox = document.getElementById("video-reels-lightbox-{{ block.id }}");
+    var wrapper = document.getElementById("mobireel-wrapper-{{ block.id }}");
+    var track = document.getElementById("mobireel-track-{{ block.id }}");
+    var dotsContainer = document.getElementById("mobireel-dots-{{ block.id }}");
+    var lightbox = document.getElementById("mobireel-lightbox-{{ block.id }}");
     if (!wrapper || !track) return;
 
     if (lightbox) {
@@ -555,11 +555,11 @@
       });
       if (navigator.sendBeacon) {
         navigator.sendBeacon(
-          "/apps/reels/track",
+          "/apps/mobireel/track",
           new Blob([payload], { type: "application/json" }),
         );
       } else {
-        fetch("/apps/reels/track", {
+        fetch("/apps/mobireel/track", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: payload,
@@ -577,7 +577,7 @@
     function buildBadge(video) {
       if (!video.productImageUrl) return null;
       var badge = document.createElement("div");
-      badge.className = "video-reels-tile-product-badge";
+      badge.className = "mobireel-tile-product-badge";
       var img = document.createElement("img");
       img.src = video.productImageUrl;
       img.alt = video.productTitle || "Tagged product";
@@ -593,7 +593,7 @@
     function buildTitleLink(video) {
       if (!video.productHandle) return null;
       var link = document.createElement("a");
-      link.className = "video-reels-tile-title";
+      link.className = "mobireel-tile-title";
       link.href = "/products/" + video.productHandle;
       link.textContent = video.productTitle || "";
       link.addEventListener("click", function () {
@@ -606,18 +606,18 @@
       if (!video.productTitle && !video.productImageUrl) return null;
 
       var caption = document.createElement("div");
-      caption.className = "video-reels-tile-caption";
+      caption.className = "mobireel-tile-caption";
 
       if (video.productImageUrl) {
         var img = document.createElement("img");
-        img.className = "video-reels-tile-caption-img";
+        img.className = "mobireel-tile-caption-img";
         img.src = video.productImageUrl;
         img.alt = "";
         caption.appendChild(img);
       }
 
       var nameLink = document.createElement("a");
-      nameLink.className = "video-reels-tile-caption-name";
+      nameLink.className = "mobireel-tile-caption-name";
       nameLink.textContent = video.productTitle || "";
       if (video.productHandle) {
         nameLink.href = "/products/" + video.productHandle;
@@ -633,11 +633,11 @@
 
     function buildVideoTile(video) {
       var tile = document.createElement("div");
-      tile.className = "video-reels-tile";
+      tile.className = "mobireel-tile";
 
       var thumb = document.createElement("button");
       thumb.type = "button";
-      thumb.className = "video-reels-tile-thumb";
+      thumb.className = "mobireel-tile-thumb";
       thumb.setAttribute("aria-label", video.productTitle || "Play video");
 
       var el = document.createElement("video");
@@ -681,7 +681,7 @@
       videos.forEach(function (video) {
         track.appendChild(buildVideoTile(video).tile);
       });
-      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+      wrapper.querySelectorAll(".mobireel-nav").forEach(function (button) {
         button.addEventListener("click", function () {
           var direction = Number(button.getAttribute("data-direction"));
           track.scrollBy({ left: direction * track.clientWidth * 0.6, behavior: "smooth" });
@@ -706,10 +706,10 @@
 
       var tiles = videos.map(function (video) {
         var tile = document.createElement("div");
-        tile.className = "video-reels-tile";
+        tile.className = "mobireel-tile";
 
         var thumb = document.createElement("div");
-        thumb.className = "video-reels-tile-thumb";
+        thumb.className = "mobireel-tile-thumb";
 
         var el = document.createElement("video");
         el.src = video.url;
@@ -724,13 +724,13 @@
         thumb.appendChild(el);
 
         var views = document.createElement("div");
-        views.className = "video-reels-stack-views";
+        views.className = "mobireel-stack-views";
         views.innerHTML = "<span>&#128065;</span>" + formatViewCount(video.views || 0);
         thumb.appendChild(views);
 
         var muteBtn = document.createElement("button");
         muteBtn.type = "button";
-        muteBtn.className = "video-reels-stack-mute";
+        muteBtn.className = "mobireel-stack-mute";
         muteBtn.setAttribute("aria-label", "Toggle sound");
         muteBtn.textContent = "🔇";
         muteBtn.addEventListener("click", function (event) {
@@ -753,21 +753,21 @@
         tile.appendChild(thumb);
 
         var caption = document.createElement("div");
-        caption.className = "video-reels-stack-caption";
+        caption.className = "mobireel-stack-caption";
 
         if (video.productImageUrl) {
           var captionImg = document.createElement("img");
-          captionImg.className = "video-reels-stack-caption-img";
+          captionImg.className = "mobireel-stack-caption-img";
           captionImg.src = video.productImageUrl;
           captionImg.alt = "";
           caption.appendChild(captionImg);
         }
 
         var captionText = document.createElement("div");
-        captionText.className = "video-reels-stack-caption-text";
+        captionText.className = "mobireel-stack-caption-text";
 
         var nameLink = document.createElement("a");
-        nameLink.className = "video-reels-stack-name";
+        nameLink.className = "mobireel-stack-name";
         nameLink.textContent = video.productTitle || "";
         if (video.productHandle) {
           nameLink.href = "/products/" + video.productHandle;
@@ -779,7 +779,7 @@
         captionText.appendChild(nameLink);
 
         var priceEl = document.createElement("div");
-        priceEl.className = "video-reels-stack-price";
+        priceEl.className = "mobireel-stack-price";
         captionText.appendChild(priceEl);
 
         caption.appendChild(captionText);
@@ -832,7 +832,7 @@
 
       update();
 
-      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+      wrapper.querySelectorAll(".mobireel-nav").forEach(function (button) {
         button.addEventListener("click", function () {
           var direction = Number(button.getAttribute("data-direction"));
           goTo(current + direction);
@@ -844,10 +844,10 @@
       if (!video.productHandle) return null;
 
       var card = document.createElement("div");
-      card.className = "video-reels-lightbox-product";
+      card.className = "mobireel-lightbox-product";
 
       var info = document.createElement("div");
-      info.className = "video-reels-lightbox-product-info";
+      info.className = "mobireel-lightbox-product-info";
 
       if (video.productImageUrl) {
         var img = document.createElement("img");
@@ -857,18 +857,18 @@
       }
 
       var text = document.createElement("div");
-      text.className = "video-reels-lightbox-product-text";
+      text.className = "mobireel-lightbox-product-text";
 
       var nameLink = document.createElement("a");
       nameLink.href = "/products/" + video.productHandle;
-      nameLink.className = "video-reels-lightbox-product-name";
+      nameLink.className = "mobireel-lightbox-product-name";
       nameLink.textContent = (video.productTitle || "View product") + " ↗";
       nameLink.addEventListener("click", function () {
         trackClickAndAttribute(video);
       });
 
       var priceEl = document.createElement("div");
-      priceEl.className = "video-reels-lightbox-product-price";
+      priceEl.className = "mobireel-lightbox-product-price";
 
       text.appendChild(nameLink);
       text.appendChild(priceEl);
@@ -877,7 +877,7 @@
 
       var addBtn = document.createElement("button");
       addBtn.type = "button";
-      addBtn.className = "video-reels-lightbox-addtocart";
+      addBtn.className = "mobireel-lightbox-addtocart";
       addBtn.textContent = "Add to cart";
       addBtn.disabled = true;
       card.appendChild(addBtn);
@@ -927,7 +927,7 @@
 
     function openLightbox(video) {
       if (!lightbox) return;
-      var content = lightbox.querySelector(".video-reels-lightbox-content");
+      var content = lightbox.querySelector(".mobireel-lightbox-content");
       content.innerHTML = "";
 
       var el = document.createElement("video");
@@ -945,7 +945,7 @@
 
       var muteBtn = document.createElement("button");
       muteBtn.type = "button";
-      muteBtn.className = "video-reels-lightbox-mute";
+      muteBtn.className = "mobireel-lightbox-mute";
       muteBtn.setAttribute("aria-label", "Toggle sound");
       muteBtn.textContent = "🔇";
       muteBtn.addEventListener("click", function () {
@@ -956,7 +956,7 @@
 
       var closeBtn = document.createElement("button");
       closeBtn.type = "button";
-      closeBtn.className = "video-reels-lightbox-close";
+      closeBtn.className = "mobireel-lightbox-close";
       closeBtn.setAttribute("aria-label", "Close");
       closeBtn.innerHTML = "&times;";
       closeBtn.addEventListener("click", closeLightbox);
@@ -978,7 +978,7 @@
       lightbox.classList.remove("is-open");
       setTimeout(function () {
         lightbox.hidden = true;
-        var content = lightbox.querySelector(".video-reels-lightbox-content");
+        var content = lightbox.querySelector(".mobireel-lightbox-content");
         content.innerHTML = "";
       }, 300);
     }
@@ -986,11 +986,11 @@
     function renderBubbles(videos) {
       videos.forEach(function (video) {
         var tile = document.createElement("div");
-        tile.className = "video-reels-tile";
+        tile.className = "mobireel-tile";
 
         var thumb = document.createElement("button");
         thumb.type = "button";
-        thumb.className = "video-reels-tile-thumb";
+        thumb.className = "mobireel-tile-thumb";
         thumb.setAttribute("aria-label", video.productTitle || "Play video");
 
         var img = document.createElement("img");
@@ -1011,7 +1011,7 @@
         track.appendChild(tile);
       });
 
-      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+      wrapper.querySelectorAll(".mobireel-nav").forEach(function (button) {
         button.addEventListener("click", function () {
           var direction = Number(button.getAttribute("data-direction"));
           track.scrollBy({ left: direction * track.clientWidth * 0.6, behavior: "smooth" });
@@ -1024,8 +1024,8 @@
 
       var tiles = videos.map(function (video) {
         var built = buildVideoTile(video);
-        built.tile.classList.remove("video-reels-tile");
-        built.tile.className = "video-reels-tile";
+        built.tile.classList.remove("mobireel-tile");
+        built.tile.className = "mobireel-tile";
         track.appendChild(built.tile);
         return built;
       });
@@ -1033,7 +1033,7 @@
       var dots = videos.map(function (_, index) {
         var dot = document.createElement("button");
         dot.type = "button";
-        dot.className = "video-reels-dot";
+        dot.className = "mobireel-dot";
         dot.setAttribute("aria-label", "Go to video " + (index + 1));
         dot.addEventListener("click", function () {
           goTo(index);
@@ -1059,7 +1059,7 @@
 
       goTo(0);
 
-      wrapper.querySelectorAll(".video-reels-nav").forEach(function (button) {
+      wrapper.querySelectorAll(".mobireel-nav").forEach(function (button) {
         button.addEventListener("click", function () {
           var direction = Number(button.getAttribute("data-direction"));
           goTo(current + direction);
@@ -1070,12 +1070,12 @@
     var carouselId = {{ block.settings.carousel.carousel_id.value | default: "" | json }};
     if (!carouselId) return;
 
-    fetch("/apps/reels/videos?id=" + encodeURIComponent(carouselId))
+    fetch("/apps/mobireel/videos?id=" + encodeURIComponent(carouselId))
       .then(function (res) { return res.json(); })
       .then(function (data) {
         var videos = data.videos || [];
         var style = styleOverride || data.style || "row";
-        wrapper.classList.add("video-reels-style-" + style);
+        wrapper.classList.add("mobireel-style-" + style);
 
         if (style === "bubbles") {
           renderBubbles(videos);
@@ -1095,13 +1095,13 @@
 
 {% schema %}
 {
-  "name": "Video Reels Carousel",
+  "name": "MobiReel Carousel",
   "target": "section",
   "settings": [
     {
       "type": "metaobject",
       "id": "carousel",
-      "metaobject_type": "app--431534440449--video_carousel",
+      "metaobject_type": "app--431534440449--mobireel_carousel",
       "label": "Carousel"
     },
     {
@@ -1109,7 +1109,7 @@
       "id": "style",
       "label": "Style",
       "default": "",
-      "info": "\"Use app setting\" follows whatever style is chosen for this carousel in the Video Reels app. Pick a specific style here to override it just for this block.",
+      "info": "\"Use app setting\" follows whatever style is chosen for this carousel in the MobiReel app. Pick a specific style here to override it just for this block.",
       "options": [
         { "value": "", "label": "Use app setting" },
         { "value": "row", "label": "Row (horizontal scroll)" },

@@ -1,4 +1,4 @@
-const METAOBJECT_TYPE = "$app:video_carousel";
+const METAOBJECT_TYPE = "$app:mobireel_carousel";
 
 const UPSERT_MUTATION = `#graphql
   mutation UpsertVideoCarouselMetaobject($handle: MetaobjectHandleInput!, $values: JSON!) {

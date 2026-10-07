@@ -29,7 +29,7 @@
           var videoId = window.__reelsCookie.get();
           if (!videoId) return;
 
-          fetch("/apps/reels/track", {
+          fetch("/apps/mobireel/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -57,7 +57,7 @@
 
 {% schema %}
 {
-  "name": "Video Reels tracking",
+  "name": "MobiReel tracking",
   "target": "body"
 }
 {% endschema %}
