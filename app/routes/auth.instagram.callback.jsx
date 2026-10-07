@@ -55,10 +55,17 @@ export async function loader({ request }) {
   const code = url.searchParams.get("code");
   const shop = verifyInstagramState(url.searchParams.get("state"));
 
-  if (!code || !shop) {
+  if (!code) {
     return htmlResponse(
       "Connection failed",
       "Instagram didn't send back the information we needed. Please try connecting again.",
+    );
+  }
+
+  if (!shop) {
+    return htmlResponse(
+      "Connection expired",
+      "This connection link is invalid or has expired. Reload the app in Shopify and click Connect Instagram again.",
     );
   }
 
