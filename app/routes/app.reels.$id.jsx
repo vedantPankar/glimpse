@@ -81,7 +81,9 @@ export default function ReelDetail() {
           poster={video.thumbnailUrl || undefined}
           controls
           width="320"
-        />
+        >
+          <track kind="captions" />
+        </video>
       </s-section>
 
       <s-section heading="Attached products">

@@ -7,7 +7,6 @@ import { getInstagramConnection } from "../models/instagramConnection.server";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
 import {
   formatDuration,
-  formatDate,
   formatDateTime,
   formatFileSize,
 } from "../utils/format";
@@ -292,7 +291,15 @@ export default function Upload() {
             )}
 
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => !uploading && fileInputRef.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  if (!uploading) fileInputRef.current?.click();
+                }
+              }}
               onDragOver={(event) => {
                 event.preventDefault();
                 setDragging(true);
@@ -327,7 +334,7 @@ export default function Upload() {
                   <div className="shell-upload-subtext">
                     Drag and drop your video here, or click to browse.
                     <br />
-                    Upload your video to Cloudinary. Once it finishes, you'll
+                    Upload your video to Cloudinary. Once it finishes, you&apos;ll
                     be taken to the reels library.
                   </div>
                   <div className="shell-upload-actions">

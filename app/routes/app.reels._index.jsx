@@ -9,6 +9,7 @@ import {
   deleteInstagramConnection,
 } from "../models/instagramConnection.server";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
+import { signInstagramState } from "../utils/instagramState.server";
 import {
   formatDuration,
   formatDate,
@@ -27,7 +28,10 @@ export async function loader({ request }) {
   const instagramConnection = await getInstagramConnection(session.shop);
   const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
   const redirectUri = new URL("/auth/instagram/callback", appUrl).toString();
-  const instagramAuthUrl = getInstagramAuthorizationUrl(session.shop, redirectUri);
+  const instagramAuthUrl = getInstagramAuthorizationUrl(
+    signInstagramState(session.shop),
+    redirectUri,
+  );
   return {
     videos,
     stats,
@@ -124,7 +128,18 @@ function ReelCard({ video, stat, isSelected, onSelect, onDelete, deleting }) {
     <div
       className={`shell-card shell-reel-card${isSelected ? " is-selected" : ""}`}
     >
-      <div className="shell-reel-thumb shell-video-thumb" onClick={onSelect}>
+      <div
+        className="shell-reel-thumb shell-video-thumb"
+        onClick={onSelect}
+ role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+      >
         <img src={video.thumbnailUrl || video.url} alt={video.title || ""} />
         {duration && <span className="shell-video-duration">{duration}</span>}
       </div>
@@ -158,7 +173,19 @@ function ReelRow({ video, stat, onSelect, onDelete, deleting }) {
   return (
     <div className="shell-card shell-carousel-row-card">
       <div className="shell-row-thumbs">
-        <div className="shell-row-thumb" style={{ cursor: "pointer" }} onClick={onSelect}>
+        <div
+          className="shell-row-thumb"
+          style={{ cursor: "pointer" }}
+          onClick={onSelect}
+ role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelect();
+            }
+          }}
+        >
           <img src={video.thumbnailUrl || video.url} alt="" />
           {duration && <span className="shell-video-duration">{duration}</span>}
         </div>
@@ -440,7 +467,9 @@ export default function ReelsIndex() {
                   poster={selectedVideo.thumbnailUrl || undefined}
                   controls
                   playsInline
-                />
+                >
+                  <track kind="captions" />
+                </video>
               </div>
             )}
           </div>

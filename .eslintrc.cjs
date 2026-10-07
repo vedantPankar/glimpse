@@ -18,6 +18,7 @@ module.exports = {
     browser: true,
     commonjs: true,
     es6: true,
+    node: true,
   },
   ignorePatterns: ["!**/.server", "!**/.client"],
 
@@ -50,6 +51,8 @@ module.exports = {
       },
       rules: {
         "react/no-unknown-property": ["error", { ignore: ["variant"] }],
+        // Plain-JS app: components aren't typed with PropTypes.
+        "react/prop-types": "off",
       },
     },
 

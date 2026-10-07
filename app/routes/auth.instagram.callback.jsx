@@ -2,6 +2,7 @@ import {
   exchangeCodeForShortLivedToken,
   exchangeForLongLivedToken,
 } from "../utils/instagram.server";
+import { verifyInstagramState } from "../utils/instagramState.server";
 import { upsertInstagramConnection } from "../models/instagramConnection.server";
 
 // This route is reached directly by Instagram's OAuth redirect, in a bare
@@ -9,7 +10,7 @@ import { upsertInstagramConnection } from "../models/instagramConnection.server"
 // inside Shopify's embedded admin iframe, so "Connect Instagram" opens this
 // flow in a new tab instead of navigating in place). There is no Shopify
 // session here — we correlate this callback back to a shop via the `state`
-// param, which was set to the shop domain when building the authorization
+// param, which was a signed (HMAC) shop domain set when building the authorization
 // URL. We return a plain standalone HTML page rather than redirecting into
 // the embedded app, since this bare tab has no App Bridge context to render
 // the embedded UI correctly.
@@ -52,7 +53,7 @@ function htmlResponse(title, message) {
 export async function loader({ request }) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const shop = url.searchParams.get("state");
+  const shop = verifyInstagramState(url.searchParams.get("state"));
 
   if (!code || !shop) {
     return htmlResponse(

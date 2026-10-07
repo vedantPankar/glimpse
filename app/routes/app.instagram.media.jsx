@@ -158,7 +158,10 @@ export default function InstagramMedia() {
                         value={item.id}
                         className="shell-ig-native-checkbox"
                       />
-                      <img src={item.thumbnail_url || item.media_url} alt="" />
+                      <img
+                        src={item.thumbnail_url || item.media_url}
+                        alt={item.caption?.slice(0, 80) || "Instagram video"}
+                      />
                     </label>
                   ))}
                 </div>

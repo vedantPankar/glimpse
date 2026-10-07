@@ -1,46 +1,25 @@
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
-import { useState } from "react";
-import { Form, useActionData, useLoaderData } from "react-router";
 import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
 
+// Installs start from Shopify (App Store / admin), which supplies ?shop=.
+// We never ask merchants to type their myshopify.com domain.
 export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return { errors };
+  await login(request);
+  return null;
 };
 
-export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return {
-    errors,
-  };
-};
+export const action = loader;
 
 export default function Auth() {
-  const loaderData = useLoaderData();
-  const actionData = useActionData();
-  const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
-
   return (
     <AppProvider embedded={false}>
       <s-page>
-        <Form method="post">
-          <s-section heading="Log in">
-            <s-text-field
-              name="shop"
-              label="Shop domain"
-              details="example.myshopify.com"
-              value={shop}
-              onChange={(e) => setShop(e.currentTarget.value)}
-              autocomplete="on"
-              error={errors.shop}
-            ></s-text-field>
-            <s-button type="submit">Log in</s-button>
-          </s-section>
-        </Form>
+        <s-section heading="Open from Shopify">
+          <s-paragraph>
+            Install and open Video Reels from your Shopify admin or the Shopify
+            App Store.
+          </s-paragraph>
+        </s-section>
       </s-page>
     </AppProvider>
   );

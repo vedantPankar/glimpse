@@ -361,9 +361,6 @@ export default function CarouselsIndex() {
           </p>
         </div>
         <div className="shell-page-actions">
-          <Link to="/app/debug-metaobjects" className="shell-btn-secondary">
-            Debug metaobjects
-          </Link>
           <a
             href={themeEditorUrl}
             target="_blank"

@@ -497,7 +497,7 @@ export default function Analytics() {
             </div>
             {!topCarousel ? (
               <p className="shell-empty-note">
-                Once a carousel gets views, it'll be highlighted here.
+                Once a carousel gets views, it&apos;ll be highlighted here.
               </p>
             ) : (
               <>
