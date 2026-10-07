@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useLoaderData, useFetcher } from "react-router";
+import { Link, useLoaderData, useFetcher, useSearchParams } from "react-router";
 import { authenticate } from "../shopify.server";
 import { listVideos, deleteVideo } from "../models/video.server";
 import { destroyCloudinaryAsset } from "../utils/cloudinary.server";
@@ -244,6 +244,9 @@ export default function ReelsIndex() {
     useLoaderData();
   const deleteFetcher = useFetcher();
   const instagramFetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+  const importedCount = Number(searchParams.get("imported") || 0);
+  const failedCount = Number(searchParams.get("failed") || 0);
 
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("latest");
@@ -312,6 +315,24 @@ export default function ReelsIndex() {
           </Link>
         </div>
       </div>
+
+      {importedCount > 0 && (
+        <div
+          className="shell-card"
+          role="status"
+          style={{
+            background: "#f0faf4",
+            border: "1px solid #bfe5cc",
+            color: "#1f7a46",
+            marginBottom: 16,
+          }}
+        >
+          Imported {importedCount} video{importedCount > 1 ? "s" : ""} from
+          Instagram.
+          {failedCount > 0 &&
+            ` ${failedCount} couldn't be imported. Try those again.`}
+        </div>
+      )}
 
       {instagramConnected && (
         <div style={{ marginBottom: 16 }}>

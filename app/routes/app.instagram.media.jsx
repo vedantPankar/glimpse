@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { redirect, useLoaderData, useRevalidator } from "react-router";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useRevalidator,
+} from "react-router";
 import { authenticate } from "../shopify.server";
 import { toSafariSafeVideoUrl } from "../utils/cloudinaryUrl";
 import {
@@ -9,6 +16,7 @@ import {
 import { fetchInstagramVideoMedia } from "../utils/instagram.server";
 import { uploadRemoteVideo } from "../utils/cloudinary.server";
 import { createVideo } from "../models/video.server";
+import { mapWithConcurrency } from "../utils/mapWithConcurrency";
 import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
 import { signInstagramState } from "../utils/instagramState.server";
 
@@ -45,6 +53,8 @@ export async function loader({ request }) {
   }
 }
 
+const IMPORT_CONCURRENCY = 3;
+
 export async function action({ request }) {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
@@ -52,8 +62,14 @@ export async function action({ request }) {
   const selectedIds = new Set(formData.getAll("selectedIds"));
   const items = allItems.filter((item) => selectedIds.has(item.id));
 
-  const results = await Promise.allSettled(
-    items.map(async (item) => {
+  if (items.length === 0) {
+    return { error: "Select at least one video to import." };
+  }
+
+  const results = await mapWithConcurrency(
+    items,
+    IMPORT_CONCURRENCY,
+    async (item) => {
       const uploaded = await uploadRemoteVideo(item.media_url);
       return createVideo({
         shop: session.shop,
@@ -67,7 +83,7 @@ export async function action({ request }) {
         fileSize: uploaded.bytes ?? null,
         source: "instagram",
       });
-    }),
+    },
   );
 
   const failed = results.filter((r) => r.status === "rejected");
@@ -75,13 +91,28 @@ export async function action({ request }) {
     console.error("Failed to import Instagram video:", failure.reason);
   }
 
-  return redirect("/app/reels");
+  if (failed.length === items.length) {
+    return {
+      error: `Couldn't import the selected video${items.length > 1 ? "s" : ""}. Please try again.`,
+    };
+  }
+
+  return redirect(
+    failed.length > 0
+      ? `/app/reels?imported=${items.length - failed.length}&failed=${failed.length}`
+      : `/app/reels?imported=${items.length}`,
+  );
 }
 
 const POLL_MS = 3000;
 
 export default function InstagramMedia() {
-  const { connected, media, error, instagramAuthUrl } = useLoaderData();
+  const { connected, media, error: loaderError, instagramAuthUrl } =
+    useLoaderData();
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const importing = navigation.state === "submitting";
+  const error = actionData?.error || loaderError;
   const revalidator = useRevalidator();
   const [selected, setSelected] = useState(() => new Set());
   const [waiting, setWaiting] = useState(false);
@@ -189,7 +220,7 @@ export default function InstagramMedia() {
                 No reels or video posts found on your Instagram account.
               </p>
             ) : (
-              <form method="post">
+              <Form method="post">
                 <input
                   type="hidden"
                   name="allItems"
@@ -219,13 +250,15 @@ export default function InstagramMedia() {
                 <button
                   type="submit"
                   className="shell-btn-primary"
-                  disabled={selected.size === 0}
+                  disabled={selected.size === 0 || importing}
                 >
-                  {selected.size > 0
-                    ? `Import ${selected.size} selected`
-                    : "Import selected videos"}
+                  {importing
+                    ? "Importing… this can take a minute"
+                    : selected.size > 0
+                      ? `Import ${selected.size} selected`
+                      : "Import selected videos"}
                 </button>
-              </form>
+              </Form>
             )}
           </>
         )}
