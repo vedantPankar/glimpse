@@ -8,8 +8,6 @@ import {
   getInstagramConnection,
   deleteInstagramConnection,
 } from "../models/instagramConnection.server";
-import { getInstagramAuthorizationUrl } from "../utils/instagram.server";
-import { signInstagramState } from "../utils/instagramState.server";
 import {
   formatDuration,
   formatDate,
@@ -26,18 +24,11 @@ export async function loader({ request }) {
   const stats = await getVideoStats(session.shop);
   const overview = await getVideosOverview(session.shop, RANGE_DAYS);
   const instagramConnection = await getInstagramConnection(session.shop);
-  const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
-  const redirectUri = new URL("/auth/instagram/callback", appUrl).toString();
-  const instagramAuthUrl = getInstagramAuthorizationUrl(
-    signInstagramState(session.shop),
-    redirectUri,
-  );
   return {
     videos,
     stats,
     overview,
     instagramConnected: !!instagramConnection,
-    instagramAuthUrl,
   };
 }
 
@@ -249,7 +240,7 @@ function ReelRow({ video, stat, onSelect, onDelete, deleting }) {
 }
 
 export default function ReelsIndex() {
-  const { videos, stats, overview, instagramConnected, instagramAuthUrl } =
+  const { videos, stats, overview, instagramConnected } =
     useLoaderData();
   const deleteFetcher = useFetcher();
   const instagramFetcher = useFetcher();
@@ -313,20 +304,9 @@ export default function ReelsIndex() {
           </p>
         </div>
         <div className="shell-page-actions">
-          {instagramConnected ? (
-            <Link to="/app/instagram/media" className="shell-btn-secondary">
-              Import from Instagram
-            </Link>
-          ) : (
-            <a
-              href={instagramAuthUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="shell-btn-secondary"
-            >
-              Connect Instagram
-            </a>
-          )}
+          <Link to="/app/instagram/media" className="shell-btn-secondary">
+            Import from Instagram
+          </Link>
           <Link to="/app/upload" className="shell-btn-primary">
             + Upload video
           </Link>

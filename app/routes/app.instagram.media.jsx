@@ -1,4 +1,5 @@
-import { redirect, useLoaderData } from "react-router";
+import { useEffect, useState } from "react";
+import { redirect, useLoaderData, useRevalidator } from "react-router";
 import { authenticate } from "../shopify.server";
 import { toSafariSafeVideoUrl } from "../utils/cloudinaryUrl";
 import {
@@ -77,8 +78,35 @@ export async function action({ request }) {
   return redirect("/app/reels");
 }
 
+const POLL_MS = 3000;
+
 export default function InstagramMedia() {
   const { connected, media, error, instagramAuthUrl } = useLoaderData();
+  const revalidator = useRevalidator();
+  const [selected, setSelected] = useState(() => new Set());
+  const [waiting, setWaiting] = useState(false);
+
+  // Instagram can't render inside Shopify's iframe, so connecting happens in a
+  // new tab. Poll while disconnected so this page switches to the video list
+  // by itself as soon as that tab finishes.
+  useEffect(() => {
+    if (connected || !waiting) return undefined;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") revalidator.revalidate();
+    }, POLL_MS);
+    return () => clearInterval(timer);
+  }, [connected, waiting, revalidator]);
+
+  const toggle = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allSelected = media.length > 0 && selected.size === media.length;
+  const toggleAll = () =>
+    setSelected(allSelected ? new Set() : new Set(media.map((m) => m.id)));
 
   return (
     <div>
@@ -86,11 +114,11 @@ export default function InstagramMedia() {
         <div>
           <h1 className="shell-greeting-title">Import from Instagram</h1>
           <p className="shell-greeting-subtitle">
-            Choose one or multiple videos from your account to import.
+            Choose reels and videos from your account to import.
           </p>
         </div>
-        <a href="/app/upload" className="shell-btn-secondary">
-          Back to upload
+        <a href="/app/reels" className="shell-btn-secondary">
+          Back to reels
         </a>
       </div>
 
@@ -112,36 +140,53 @@ export default function InstagramMedia() {
         {!connected ? (
           <div style={{ textAlign: "center", padding: 40 }}>
             <p className="shell-empty-note" style={{ marginBottom: 16 }}>
-              Connect your Instagram account to import your existing videos.
+              {waiting
+                ? "Finish connecting in the Instagram tab. This page will update automatically."
+                : "Connect your Instagram account to import your reels and videos."}
             </p>
             <a
               href={instagramAuthUrl}
               target="_blank"
               rel="noreferrer"
               className="shell-btn-primary"
+              onClick={() => setWaiting(true)}
             >
-              Connect Instagram
+              {waiting ? "Reopen Instagram" : "Connect Instagram"}
             </a>
           </div>
         ) : (
           <>
             <div className="shell-ig-toolbar">
-              <div>
-                <div
-                  className="shell-upload-heading"
-                  style={{ textAlign: "left" }}
-                >
-                  Select videos to import
-                </div>
+              <div
+                className="shell-upload-heading"
+                style={{ textAlign: "left" }}
+              >
+                Select videos to import
               </div>
-              <a href="/app/instagram/media" className="shell-btn-secondary">
-                <s-icon type="refresh" size="small" /> Refresh
-              </a>
+              <div className="shell-page-actions">
+                {media.length > 0 && (
+                  <button
+                    type="button"
+                    className="shell-btn-secondary"
+                    onClick={toggleAll}
+                  >
+                    {allSelected ? "Clear selection" : "Select all"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="shell-btn-secondary"
+                  onClick={() => revalidator.revalidate()}
+                  disabled={revalidator.state !== "idle"}
+                >
+                  <s-icon type="refresh" size="small" /> Refresh
+                </button>
+              </div>
             </div>
 
             {media.length === 0 ? (
               <p className="shell-empty-note">
-                No video posts found on your Instagram account.
+                No reels or video posts found on your Instagram account.
               </p>
             ) : (
               <form method="post">
@@ -157,17 +202,28 @@ export default function InstagramMedia() {
                         type="checkbox"
                         name="selectedIds"
                         value={item.id}
+                        checked={selected.has(item.id)}
+                        onChange={() => toggle(item.id)}
                         className="shell-ig-native-checkbox"
                       />
                       <img
                         src={item.thumbnail_url || item.media_url}
                         alt={item.caption?.slice(0, 80) || "Instagram video"}
                       />
+                      {item.media_product_type === "REELS" && (
+                        <span className="shell-video-duration">Reel</span>
+                      )}
                     </label>
                   ))}
                 </div>
-                <button type="submit" className="shell-btn-primary">
-                  Import selected videos
+                <button
+                  type="submit"
+                  className="shell-btn-primary"
+                  disabled={selected.size === 0}
+                >
+                  {selected.size > 0
+                    ? `Import ${selected.size} selected`
+                    : "Import selected videos"}
                 </button>
               </form>
             )}

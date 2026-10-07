@@ -44,22 +44,40 @@ export async function exchangeForLongLivedToken(shortLivedToken) {
   return response.json(); // { access_token, token_type, expires_in }
 }
 
+const MAX_MEDIA_PAGES = 4; // 4 x 50 = the 200 most recent posts
+
 export async function fetchInstagramVideoMedia(accessToken) {
   const params = new URLSearchParams({
-    fields: "id,media_type,media_url,thumbnail_url,caption,permalink",
+    fields:
+      "id,media_type,media_product_type,media_url,thumbnail_url,caption,permalink,timestamp",
+    limit: "50",
     access_token: accessToken,
   });
 
-  const response = await fetch(`${GRAPH_URL}/me/media?${params.toString()}`);
-  const json = await response.json();
+  let url = `${GRAPH_URL}/me/media?${params.toString()}`;
+  const videos = [];
 
-  if (!response.ok) {
-    const error = new Error(
-      json?.error?.message || `Instagram media fetch failed: ${response.status}`,
+  for (let page = 0; url && page < MAX_MEDIA_PAGES; page++) {
+    const response = await fetch(url);
+    const json = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(
+        json?.error?.message ||
+          `Instagram media fetch failed: ${response.status}`,
+      );
+      error.isAuthError = response.status === 401 || response.status === 400;
+      throw error;
+    }
+
+    videos.push(
+      ...(json.data || []).filter((item) => item.media_type === "VIDEO"),
     );
-    error.isAuthError = response.status === 401 || response.status === 400;
-    throw error;
+
+    // Only follow pagination links that stay on Instagram's Graph host.
+    const next = json.paging?.next;
+    url = next && next.startsWith(`${GRAPH_URL}/`) ? next : null;
   }
 
-  return (json.data || []).filter((item) => item.media_type === "VIDEO");
+  return videos;
 }
